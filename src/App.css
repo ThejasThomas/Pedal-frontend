@@ -1,0 +1,8 @@
+.zoom-container {
+    overflow: hidden; /* Ensures zoom effect doesn't spill outside the container */
+    position: relative;
+  }
+  
+  .zoom-container img {
+    transition: transform 0.3s ease;
+  }
