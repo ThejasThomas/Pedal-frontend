@@ -145,10 +145,10 @@ const AdminOrders = () => {
                         onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
                         className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md transition-all duration-150 ease-in-out"
                       >
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="PROCESSING">Processing</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
                       </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <ChevronDown className="h-4 w-4" />
@@ -164,15 +164,17 @@ const AdminOrders = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleStatusUpdate(order._id, "Cancelled")}
-                      className={`inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition ease-in-out duration-150 ${
-                        order.orderStatus === "Cancelled" ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={order.orderStatus === "Cancelled"}
-                    >
-                      Cancel Order
-                    </button>
+                    {order.orderStatus !== "DELIVERED" && (
+                      <button
+                        onClick={() => handleStatusUpdate(order._id, "CANCELLED")}
+                        className={`inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition ease-in-out duration-150 ${
+                          order.orderStatus === "CANCELLED" ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        disabled={order.orderStatus === "CANCELLED"}
+                      >
+                        Cancel Order
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -185,4 +187,3 @@ const AdminOrders = () => {
 }
 
 export default AdminOrders
-

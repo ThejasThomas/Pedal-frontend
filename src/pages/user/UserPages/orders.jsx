@@ -58,7 +58,7 @@ console.log('error:', error);
       PENDING: 'bg-yellow-100 text-yellow-800',
       'ON THE ROAD': 'bg-blue-100 text-blue-800',
       DELIVERED: 'bg-green-100 text-green-800',
-      CANCELED: 'bg-red-100 text-red-800'
+      CANCELLED: 'bg-red-100 text-red-800'
     };
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -148,54 +148,3 @@ console.log('error:', error);
 };
 
 export default OrderHistory;
-
-  // const handleCancelOrder = async (orderId) => {
-  //   try {
-  //     setCancellingOrders(prev => new Set([...prev, orderId]));
-  //     console.log(orderId);
-      
-      
-  //     const response = await axiosInstance.post(`/user/cancelOrder/${orderId}`);
-  //     console.log(response);
-      
-      
-  //     if (response.data.success) {
-  //       toast.success('Order cancelled successfully');
-  //       setOrders(prevOrders =>
-  //         prevOrders.map(order =>
-  //           order._id === orderId
-  //             ? { ...order, orderStatus: 'CANCELED' }
-  //             : order
-  //         )
-  //       );
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || 'Failed to cancel order');
-  //     console.error('Error cancelling order:', error);
-  //   } finally {
-  //     setCancellingOrders(prev => {
-  //       const newSet = new Set(prev);
-  //       newSet.delete(orderId);
-  //       return newSet;
-  //     });
-  //   }
-  // };
-  
-                  /* {canCancelOrder(order.orderStatus) && (
-                    // <Button
-                    //   variant="destructive"
-                    //   size="sm"
-                    //   disabled={cancellingOrders.has(order._id)}
-                    //   onClick={() => handleCancelOrder(order._id)}
-                    // >
-                    //   {cancellingOrders.has(order._id) ? (
-                    //     <>
-                    //       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    //       Cancelling...
-                    //     </>
-                    //   ) : (
-                    //     'Cancel Order'
-                    //   )}
-                    // </Button>
-                  )} */
-     

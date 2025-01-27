@@ -49,7 +49,9 @@ const UserDashboard = () => {
   const handleOrdersClick = () => {
     navigate('/user/orders');
   };
-
+const handleWalletClick= ()=>{
+  navigate('/user/wallet')
+}
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -122,6 +124,13 @@ const UserDashboard = () => {
                   >
                     <ShoppingBag className="w-5 h-5 mr-2" />
                     Order Details
+                  </button>
+                  <button
+                    onClick={handleWalletClick}
+                    className="flex items-center justify-center px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    My Wallet
                   </button>
                 </div>
               </div>

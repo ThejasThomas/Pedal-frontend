@@ -20,6 +20,7 @@ import OrderDetailPage from "../pages/user/UserPages/orderDetailedPage";
 import ContactPage from "../pages/user/contactPage/contactpage";
 import ForgotPassword from "../components/Auth/ForgotPassword";
 import CouponPage from "../components/user/dashboardcomponents/CouponPage";
+import WalletPage from "../pages/user/userWallet";
 
 function UserRoute() {
   return (
@@ -48,7 +49,7 @@ function UserRoute() {
           <Route path="/checkout" element={<CheckOutPage />} />
           <Route path="/edituserdata" element={<EditUserDetails />} />
           <Route path="/coupons" element={<CouponPage />} />
-
+          <Route path="/wallet" element ={<WalletPage/>}/>
           <Route path="/orders" element={<Orders/>}></Route>
          
 
@@ -59,6 +60,7 @@ function UserRoute() {
       <Route path="/orderdetailedpage/:orderId" element={<OrderDetailPage/>}/>
       <Route path="/contactpage" element={<ContactPage/>}/>
       <Route path='/*' element ={<ErrorPage/>}/>
+
 
     </Routes>
   );

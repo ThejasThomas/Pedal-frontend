@@ -218,10 +218,10 @@ const AdminUsersOrders = () => {
                               <SelectValue>{order.orderStatus || 'Processing'}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Processing">Processing</SelectItem>
-                              <SelectItem value="Shipped">Shipped</SelectItem>
-                              <SelectItem value="Delivered">Delivered</SelectItem>
-                              <SelectItem value="Cancelled">Cancelled</SelectItem>
+                              <SelectItem value="PROCESSING">Processing</SelectItem>
+                              <SelectItem value="SHIPPED">Shipped</SelectItem>
+                              <SelectItem value="DELIVERED">Delivered</SelectItem>
+                              <SelectItem value="CANCELLED">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>
@@ -233,9 +233,9 @@ const AdminUsersOrders = () => {
                         </TableCell>
                         <TableCell>
                           <button
-                            onClick={() => handleStatusUpdate(order._id, 'Cancelled')}
+                            onClick={() => handleStatusUpdate(order._id, 'CANCELLED')}
                             className="text-red-500 hover:text-red-700 font-medium"
-                            disabled={order.orderStatus === 'Cancelled'}
+                            disabled={order.orderStatus === 'CANCELLED'}
                           >
                             Cancel Order
                           </button>
