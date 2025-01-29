@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, ImageOff,ShoppingCart  } from 'lucide-react';
+import { Heart, ImageOff, ShoppingCart } from 'lucide-react';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const ProductGrid = ({ sortOption,selectedCategory }) => {
+const ProductGrid = ({ sortOption, selectedCategory }) => {
   const userData = useSelector((store) => store.user.users);
- 
   const [products, setProducts] = useState([]);
-  // const [categorizedProducts, setCategorizedProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -20,13 +18,12 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
   useEffect(() => {
     if (sortOption && products.length > 0) {
       sortProducts(sortOption);
-
     }
   }, [sortOption]);
 
   const fetchProducts = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       let endpoint = '/user/products';
       
       if (selectedCategory) {
@@ -34,7 +31,6 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
       }
 
       const { data } = await axiosInstance.get(endpoint);
-      console.log('data',data);
       
       if (data.success) {
         setProducts(data.products);
@@ -47,16 +43,23 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
       setLoading(false);
     }
   };
-  
 
   const sortProducts = (option) => {
     const sortedProducts = [...products];
     switch (option) {
       case 'priceLowToHigh':
-        sortedProducts.sort((a, b) => a.basePrice - b.basePrice);
+        sortedProducts.sort((a, b) => {
+          const priceA = a.discountedAmount ? a.basePrice - a.discountedAmount : a.basePrice;
+          const priceB = b.discountedAmount ? b.basePrice - b.discountedAmount : b.basePrice;
+          return priceA - priceB;
+        });
         break;
       case 'priceHighToLow':
-        sortedProducts.sort((a, b) => b.basePrice - a.basePrice);
+        sortedProducts.sort((a, b) => {
+          const priceA = a.discountedAmount ? a.basePrice - a.discountedAmount : a.basePrice;
+          const priceB = b.discountedAmount ? b.basePrice - b.discountedAmount : b.basePrice;
+          return priceB - priceA;
+        });
         break;
       case 'nameAZ':
         sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
@@ -81,6 +84,13 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
     navigate(`/user/product/${productId}`);
   };
 
+  const calculateFinalPrice = (product) => {
+    if (product.discountedAmount) {
+      return (product.basePrice - product.discountedAmount).toFixed(2);
+    }
+    return product.basePrice.toFixed(2);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -88,7 +98,6 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
       </div>
     );
   }
-  
 
   if (error) {
     return (
@@ -128,17 +137,30 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
                     <ImageOff className="w-12 h-12 text-gray-400" />
                   </div>
                 )}
-                {product.discount > 0 && (
+                {product.discountValue > 0 && (
                   <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {product.discount}% OFF
+                    {product.discountValue}% OFF
                   </div>
                 )}
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-2 truncate">{product.name}</h3>
-                <p className="text-gray-600 mb-4">
-                  ${product.basePrice ? product.basePrice.toFixed(2) : "N/A"}
-                </p>
+                <div className="mb-4">
+                  {product.discountedAmount ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900 font-semibold">
+                        ${calculateFinalPrice(product)}
+                      </span>
+                      <span className="text-gray-500 text-sm line-through">
+                        ${product.basePrice.toFixed(2)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-900">
+                      ${product.basePrice.toFixed(2)}
+                    </span>
+                  )}
+                </div>
                 <div className="flex justify-between items-center">
                   <button className="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors flex items-center">
                     <ShoppingCart className="w-4 h-4 mr-2" />
@@ -175,4 +197,3 @@ const ProductGrid = ({ sortOption,selectedCategory }) => {
 };
 
 export default ProductGrid;
-

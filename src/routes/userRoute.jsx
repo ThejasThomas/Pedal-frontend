@@ -21,6 +21,7 @@ import ContactPage from "../pages/user/contactPage/contactpage";
 import ForgotPassword from "../components/Auth/ForgotPassword";
 import CouponPage from "../components/user/dashboardcomponents/CouponPage";
 import WalletPage from "../pages/user/userWallet";
+import Wishlist from "../pages/user/UserPages/wishlist";
 
 function UserRoute() {
   return (
@@ -51,6 +52,7 @@ function UserRoute() {
           <Route path="/coupons" element={<CouponPage />} />
           <Route path="/wallet" element ={<WalletPage/>}/>
           <Route path="/orders" element={<Orders/>}></Route>
+          <Route path="/wishlist" element={<Wishlist/>}></Route>
          
 
         </Route>

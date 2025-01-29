@@ -9,7 +9,7 @@ const menuItems = [
   { icon: Package, label: 'Address', path: '/user/address' },
   { icon: List, label: 'Order History', path: '/user/orders' },
   { icon: ShoppingCart, label: 'Shopping Cart', path: '/user/cart' },
-  { icon: Heart, label: 'Wishlist', path: '/user/banner' },
+  { icon: Heart, label: 'Wishlist', path: '/user/wishlist' },
   { icon: Wallet, label: 'Wallet', path: '/user/transaction' },
 ];
 

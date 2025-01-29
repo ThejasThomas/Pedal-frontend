@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { axiosInstance } from "../../../api/axiosInstance";
 import { useSelector } from "react-redux";
+import { addToWishListApi } from "../../../api/whishlistApi";
 
 export default function EnhancedProductDetail() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ export default function EnhancedProductDetail() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [addingToCart, setAddingToCart] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
   const user = useSelector((state) => state.user.users);
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
   const navigate = useNavigate();
@@ -62,10 +64,50 @@ export default function EnhancedProductDetail() {
       fetchData();
     }
   }, [id]);
+  const getDiscountedPrice = (product) => {
+    if (product.discountedAmount) {
+      return product.basePrice - product.discountedAmount;
+    }
+    return product.basePrice;
+  };
 
-  const calculateCurrentPrice = (basePrice, discount) => {
-    const discountAmount = (basePrice * discount) / 100;
-    return basePrice - discountAmount;
+  const getDiscountPercentage = (product) => {
+    if (product.discountValue) {
+      return product.discountValue;
+    }
+    return 0;
+  };
+
+  const handleAddToWishlist = async () => {
+    try {
+      if (!isAuthenticated || !user) {
+        alert("Please log in to add items to wishlist");
+        return;
+      }
+
+      setAddingToWishlist(true);
+      console.log('Request data:', {
+        product_id: id,
+        user_id: user._id
+      });
+      const response = await addToWishListApi(id, user._id);
+      console.log('Response:', response);
+
+
+      if (response.data.success) {
+        alert("Product added to wishlist successfully!");
+      } else {
+        alert(response.data.message || "Error adding to wishlist");
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        alert(error.response.data.message);
+      } else {
+        alert("Error adding product to wishlist");
+      }
+    } finally {
+      setAddingToWishlist(false);
+    }
   };
 
   const handleAddToCart = async (e) => {
@@ -85,7 +127,7 @@ export default function EnhancedProductDetail() {
         userId: user._id,
         productId: id,
         quantity: quantity,
-        price: product.basePrice,
+        price: getDiscountedPrice(product),
       };
       const response = await axiosInstance.post("/user/addToCart", cartData);
       if (response.data.success) {
@@ -338,15 +380,13 @@ export default function EnhancedProductDetail() {
                 ₹{product.basePrice.toFixed(2)}
               </span>
               <span className="text-4xl font-bold text-blue-600">
-                ₹
-                {calculateCurrentPrice(
-                  product.basePrice,
-                  product.discount
-                ).toFixed(2)}
+              ₹{getDiscountedPrice(product).toFixed(2)}
               </span>
-              <span className="text-lg font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                {product.discount}% off
-              </span>
+              {product.discountValue > 0 && (
+            <span className="text-lg font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+              {getDiscountPercentage(product)}% off
+            </span>
+          )}
             </div>
             <p className="text-gray-600 mb-6">{product.description}</p>
             <div className="mb-6">
@@ -388,9 +428,13 @@ export default function EnhancedProductDetail() {
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {addingToCart ? "Adding..." : "Add to Cart"}
               </button>
-              <button className="flex-1 border border-gray-300 text-gray-600 py-3 px-6 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center">
+              <button
+                onClick={handleAddToWishlist}
+                disabled={addingToWishlist}
+                className="flex-1 border border-gray-300 text-gray-600 py-3 px-6 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-50"
+              >
                 <Heart className="w-5 h-5 mr-2" />
-                Add to Wishlist
+                {addingToWishlist ? "Adding..." : "Add to Wishlist"}
               </button>
             </div>
             <div className="border-t pt-6">
