@@ -115,7 +115,6 @@ const CheckoutPage = () => {
     }
   }
 
-  // Handlers
   const handleCountryChange = (e) => {
     const country = e.target.value
     setSelectedCountry(country)
@@ -304,10 +303,12 @@ const CheckoutPage = () => {
         addressId: selectedAddress,
         paymentMethod: paymentMethod,
         totalAmount: calculateFinalTotal(),
+        couponDiscount:appliedCoupon.maxDiscountAmount,
         items: cartItems.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
           price: item.basePrice,
+          
         })),
         orderStatus: 'PENDING'
       }
@@ -488,7 +489,7 @@ const CheckoutPage = () => {
                         <div>
                           <p className="text-blue-700 font-medium">{appliedCoupon.code}</p>
                           <p className="text-sm text-blue-600">
-                            {appliedCoupon.discountPercentage}% off up to ₹ {appliedCoupon.maxDiscountAmount}
+                            {appliedCoupon.discountPercentage} off up to ₹ {appliedCoupon.maxDiscountAmount}
                           </p>
                         </div>
                         <button onClick={handleRemoveCoupon} className="text-blue-700 hover:text-blue-800">

@@ -4,15 +4,11 @@ import { useSelector } from 'react-redux';
 
 import AdminLogin from '../pages/admin/login/adminLogin';
 import { AdminLayout } from '../pages/admin/layout/AdminLayout';
-import { DashboardPage } from '../pages/admin/Dashboard/Dashboard';
+import  Dashboard  from '../pages/admin/Dashboard/Dashboard';
 import { ProductPage } from '../pages/admin/ProductPage/ProductsPage';
 import CategoryPage from '../pages/admin/CategoryPage/CategoryPage';
-import Banner from '../pages/admin/Banner/banner';
 import Order from '../pages/admin/Orders/orders';
-import Coupon from '../pages/admin/Coupon/Coupon';
-import Transaction from '../pages/admin/Transactions/transaction';
 import Customers from '../pages/admin/Customers/customers';
-import Settings from '../pages/admin/Settings/settings';
 import LogOut from '../pages/admin/Logout/logout';
 import AddProductPage from '../components/admin/Products/AddProducts';
 import AddCategory from '../components/admin/AddCategory/AddCategory';
@@ -21,6 +17,7 @@ import EditCategory from '../components/admin/AddCategory/EditCategory';
 import AdminUsersOrders from '../pages/admin/Orders/adminUsersOrders'
 import CouponManagement from '../pages/admin/Coupon/Coupon';
 import AddCouponForm from '../components/admin/coupon/AddCoupon';
+import SalesReport from '../pages/admin/SalesReport/salesReport';
 const AdminAuthRoute = ({ children }) => {
   const admin = useSelector((state) => state.admin.admin);
   const location = useLocation();
@@ -63,16 +60,14 @@ function AdminRoute() {
           </AdminProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/products" element={<ProductPage />} />
         <Route path="/category" element={<CategoryPage />} />
-        <Route path="/banner" element={<Banner />} />
         <Route path="/orders" element={<Order />} />
         <Route path="/coupon" element={<CouponManagement />} />
         <Route path="/addcoupon" element={<AddCouponForm />} />
-        <Route path="/transaction" element={<Transaction />} />
+        <Route path="/salesreport" element={<SalesReport />} />
         <Route path="/customer" element={<Customers />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/logout" element={<LogOut />} />
         <Route path="/addcategory" element={<AddCategory />} />
         <Route path="/addproducts" element={<AddProductPage />} />

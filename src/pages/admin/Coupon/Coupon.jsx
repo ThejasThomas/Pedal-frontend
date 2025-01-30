@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Trash2, Ticket, Tag, Calendar, Users, IndianRupee, FolderX, Loader2 } from "lucide-react"
+import { Trash2, Ticket, Tag, Calendar, Users, IndianRupee, FolderX, Loader2, Percent } from "lucide-react"
 import { toast } from "sonner"
 import { deleteCouponApi, FetchCouponsApi } from "../../../api/couponApi"
 
@@ -90,7 +90,11 @@ export default function CouponManagement() {
                   </div>
                   <div className="flex items-center bg-green-50 p-2 rounded-lg">
                     <IndianRupee className="w-5 h-5 mr-2 text-green-600" />
-                    <span className="font-medium text-green-800">Min: ₹{coupon.minPurchaseAmount}</span>
+                    <span className="font-medium text-green-800">MinPurchase: ₹{coupon.minPurchaseAmount}</span>
+                  </div>
+                  <div className="flex items-center bg-green-50 p-2 rounded-lg">
+                    <IndianRupee className="w-5 h-5 mr-2 text-green-600" />
+                    <span className="font-medium text-green-800">MaxDiscount: ₹{coupon.maxDiscountAmount}</span>
                   </div>
                   <div className="flex items-center bg-purple-50 p-2 rounded-lg">
                     <Calendar className="w-5 h-5 mr-2 text-purple-600" />

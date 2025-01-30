@@ -17,10 +17,8 @@ const dispatch=useDispatch()
     { icon: List, label: 'Category', path: '/admin/category' },
     { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
     { icon: Ticket, label: 'Coupon', path: '/admin/coupon' },
-    { icon: Image, label: 'Banner', path: '/admin/banner' },
-    { icon: FileText, label: 'Transaction', path: '/admin/transaction' },
+    { icon: Image, label: 'Sales Report', path: '/admin/salesreport' },
     { icon: Users, label: 'Customers', path: '/admin/customer' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
     // { icon: LogOut, label: 'Logout', path: '/admin/logout' },
   ];
   const handleLogout = () => {
