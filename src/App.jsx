@@ -4,6 +4,7 @@ import AdminRoute from './routes/adminRoute';
 import HomePage from './pages/user/home/home';
 import ErrorPage from './pages/user/UserPages/errorpage'
 import './App.css';
+import {Toaster,} from 'sonner';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/admin/*" element={<AdminRoute />} />
         <Route path='/*' element ={<ErrorPage/>}/>
       </Routes>
+      <Toaster position='top-right' />
     </Router>
   );
 }

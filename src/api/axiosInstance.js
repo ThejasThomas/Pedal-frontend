@@ -1,12 +1,9 @@
 
-
-// axiosInstance.js
 import axios from "axios";
 import Cookies from "js-cookie";
 
 const baseURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-// Debug interceptor to verify headers
 const addDebugInterceptor = (instance, instanceName = 'default') => {
   instance.interceptors.request.use(
     (config) => {
@@ -33,12 +30,10 @@ const axiosMultipartInstance = axios.create({
   withCredentials: true,
 });
 
-// setUpInterceptors.js content moved here for clarity
 const attachRequestInterceptor = (axiosCustomInstance) => {
   console.log("Response interceptor worked..")
   axiosCustomInstance.interceptors.request.use(
     (config) => {
-      // Initialize headers if undefined
       config.headers = config.headers || {};
       
       if (config.url?.includes("cloudinary.com")) {
@@ -105,11 +100,9 @@ const attachResponseInterceptor = (axiosCustomInstance) => {
   );
 };
 
-// Add debug interceptor first
 addDebugInterceptor(axiosInstance, 'JSON Instance');
 addDebugInterceptor(axiosMultipartInstance, 'Multipart Instance');
 
-// Then attach request/response interceptors
 attachRequestInterceptor(axiosInstance);
 attachRequestInterceptor(axiosMultipartInstance);
 attachResponseInterceptor(axiosInstance);

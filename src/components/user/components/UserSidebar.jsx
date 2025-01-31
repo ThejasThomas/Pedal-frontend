@@ -10,7 +10,7 @@ const menuItems = [
   { icon: List, label: 'Order History', path: '/user/orders' },
   { icon: ShoppingCart, label: 'Shopping Cart', path: '/user/cart' },
   { icon: Heart, label: 'Wishlist', path: '/user/wishlist' },
-  { icon: Wallet, label: 'Wallet', path: '/user/transaction' },
+  { icon: Wallet, label: 'Wallet', path: '/user/wallet' },
 ];
 
 export function UserSidebar({ show, onClose }) {

@@ -18,6 +18,7 @@ import {
 import { axiosInstance } from "../../../api/axiosInstance";
 import { useSelector } from "react-redux";
 import { addToWishListApi } from "../../../api/whishlistApi";
+import { toast } from "sonner";
 
 export default function EnhancedProductDetail() {
   const { id } = useParams();
@@ -81,7 +82,7 @@ export default function EnhancedProductDetail() {
   const handleAddToWishlist = async () => {
     try {
       if (!isAuthenticated || !user) {
-        alert("Please log in to add items to wishlist");
+        toast("Please log in to add items to wishlist");
         return;
       }
 
@@ -95,15 +96,15 @@ export default function EnhancedProductDetail() {
 
 
       if (response.data.success) {
-        alert("Product added to wishlist successfully!");
+        toast("Product added to wishlist successfully!");
       } else {
-        alert(response.data.message || "Error adding to wishlist");
+      toast(response.data.message || "Error adding to wishlist");
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        alert(error.response.data.message);
+        toast(error.response.data.message);
       } else {
-        alert("Error adding product to wishlist");
+        toast("Error adding product to wishlist");
       }
     } finally {
       setAddingToWishlist(false);
@@ -114,13 +115,13 @@ export default function EnhancedProductDetail() {
     e.preventDefault();
     try {
       if (isOutOfStock) {
-        alert("Sorry, this product is out of stock");
+        toast("Sorry, this product is out of stock");
         return;
       }
 
       setAddingToCart(true);
       if (!isAuthenticated || !user) {
-        alert("Please log in to add items to cart");
+        toast("Please log in to add items to cart");
         return;
       }
       const cartData = {
@@ -131,15 +132,15 @@ export default function EnhancedProductDetail() {
       };
       const response = await axiosInstance.post("/user/addToCart", cartData);
       if (response.data.success) {
-        alert("Product added to cart successfully!");
+        toast("Product added to cart successfully!");
       } else {
-        alert(response.data.message);
+       toast(response.data.message);
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        alert(error.response.data.message);
+        toast(error.response.data.message);
       } else {
-        alert("Error adding product to cart");
+        toast("Error adding product to cart");
       }
     } finally {
       setAddingToCart(false);

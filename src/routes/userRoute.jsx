@@ -34,11 +34,7 @@ function UserRoute() {
         <Route path="/google" element={<GoogleAuthButton />} />
         <Route path="/forgot-password" element={<ForgotPassword/>}/>
       </Route>
-
-      {/* Public route - accessible to all */}
      
-
-      {/* Protected routes - require login */}
       <Route element={<ProtectedRoute />}>
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/store" element={<Store />} />

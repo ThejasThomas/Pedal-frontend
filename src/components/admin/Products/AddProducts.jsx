@@ -294,7 +294,7 @@ export default function AddProductPage() {
             </div>
 
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold mb-6">Pricing and Offer Setting</h2>
+              <h2 className="text-2xl font-semibold mb-6">Enter Price</h2>
               <div className="space-y-6">
                 <input
                   type="text"
@@ -307,17 +307,6 @@ export default function AddProductPage() {
                 {errors.basePrice && (
                   <span className="text-red-500 text-sm">{errors.basePrice}</span>
                 )}
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-400">Discount Percentage (%)</span>
-                  <input
-                    type="text"
-                    name="discount"
-                    placeholder="0%"
-                    value={productData.discount}
-                    onChange={handleInputChange}
-                    className="w-24 px-4 py-3 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                  />
-                </div>
               </div>
             </div>
 

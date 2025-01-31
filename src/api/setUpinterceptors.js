@@ -16,9 +16,6 @@ const attachRequestInterceptor = (axiosCustomInstance) => {
 
       const accessToken = Cookies.get("accessToken");
       
-      // if (accessToken) {
-      //   config.headers.Authorization = `Bearer ${accessToken}`;
-      // }
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       } else {

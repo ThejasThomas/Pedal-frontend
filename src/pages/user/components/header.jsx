@@ -51,16 +51,16 @@ const Header = ({ onSortChange,onCategoryChange,onSearch }) => {
     console.log('cat id',categoryId);
     
     setSelectedCategory(categoryId);
-    onCategoryChange(categoryId); // Pass the category ID to parent
+    onCategoryChange(categoryId); 
     setIsCategoryOpen(false); 
   };
   const handleUserMenuToggle = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
-    setIsCategoryOpen(false); // Close category dropdown if open
+    setIsCategoryOpen(false); 
   };
   const handleCategoryMenuToggle = () => {
     setIsCategoryOpen(!isCategoryOpen);
-    setIsUserMenuOpen(false); // Close user menu if open
+    setIsUserMenuOpen(false); 
   };
 
   const handleCart=(e)=>{
@@ -103,7 +103,6 @@ const Header = ({ onSortChange,onCategoryChange,onSearch }) => {
             <a href="/user/contactpage" className="text-sm font-medium hover:text-gray-300 transition-colors">Contact Us</a>
             <button className="text-white hover:text-gray-300 transition-colors relative">
               <FaShoppingCart onClick={(e)=>handleCart(e)} className="w-5 h-5" />
-              {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span> */}
             </button>
             <div className="relative">
         <button 

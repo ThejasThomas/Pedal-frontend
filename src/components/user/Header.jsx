@@ -8,6 +8,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const handleLogin=async(e)=>{
     
+    e.preventDefault(e)
     e.preventDefault()
     navigate('/user/login')
   }

@@ -6,6 +6,8 @@ import { useSelector } from "react-redux";
 import { axiosInstance } from "../../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "../../../components/UI/alert";
+import { toast } from "sonner";
+import ConfirmModal from "../../../utils/confirmModal";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -13,6 +15,8 @@ const CartPage = () => {
   const [error, setError] = useState(null);
   const [stockErrors, setStockErrors] = useState({});
   const [checkoutError, setCheckoutError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [productToRemove, setProductToRemove] = useState(null)
 
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.users);
@@ -41,23 +45,35 @@ const CartPage = () => {
     }
   };
   const handleRemoveItem = async (productId) => {
+    setProductToRemove(productId); // Set the product to remove
+    setIsModalOpen(true); // Show the confirmation modal
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!productToRemove) return;
     try {
       const userId = user?._id || localStorage.getItem("userId");
-      const response = await axiosInstance.delete(
-        `/user/removefromcart/${userId}/${productId}`
-      );
+      const response = await axiosInstance.delete(`/user/removefromcart/${userId}/${productToRemove}`);
 
       if (response.data.success) {
         setCartItems((prevItems) =>
-          prevItems.filter((item) => item.productId !== productId)
+          prevItems.filter((item) => item.productId !== productToRemove)
         );
+        toast.success("Item removed from cart successfully!");
       } else {
-        setError("Failed to remove item");
+        toast.error("Failed to remove item");
       }
     } catch (err) {
-      setError("Error removing item from cart");
+      toast.error("Error removing item from cart");
       console.error("Remove item error:", err);
     }
+    setIsModalOpen(false); // Close the modal after action
+    setProductToRemove(null); // Reset the product
+  };
+
+  const handleCancelRemove = () => {
+    setIsModalOpen(false); // Close the modal
+    setProductToRemove(null); // Reset the product
   };
 
   const calculateTotal = () => {
@@ -70,10 +86,7 @@ const CartPage = () => {
       const product = cartItems.find((item) => item.productId === productId);
       if (!product) return;
       if (newQuantity > 15) {
-        setStockErrors((prev) => ({
-          ...prev,
-          [productId]: "Maximum limit is 15 items per product",
-        }));
+        toast.error("Maximum limit is 15 items per product");
         return;
       }
 
@@ -86,19 +99,15 @@ const CartPage = () => {
 
       if (response.data.success) {
         fetchCartDetails();
-        setStockErrors((prev) => ({ ...prev, [productId]: null }));
+        toast.success("Quantity updated successfully!");
       } else {
-        setStockErrors((prev) => ({
-          ...prev,
-          [productId]: response.data.message,
-        }));
+        toast.error(response.data.message || "Failed to update quantity"); 
+
       }
     } catch (err) {
       console.error("Update quantity error:", err);
-      setStockErrors((prev) => ({
-        ...prev,
-        [productId]: err.response?.data?.message || "Error updating quantity",
-      }));
+      toast.error(err.response?.data?.message || "Error updating quantity")
+
     }
   };
   const validateCartForCheckout = () => {
@@ -170,20 +179,22 @@ const CartPage = () => {
                   <div className="flex items-center mt-2">
                     <span className="text-sm">Price: ${item.basePrice}</span>
                     <div className="mx-4 flex items-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="p-1"
-                        onClick={() =>
-                          handleQuantityChange(
-                            item.productId,
-                            item.quantity - 1
-                          )
-                        }
-                        disabled={item.quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
+                      {item.quantity > 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="p-1"
+                          onClick={() =>
+                            handleQuantityChange(
+                              item.productId,
+                              item.quantity - 1
+                            )
+                          }
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
                       <span className="mx-2">{item.quantity}</span>
                       <Button
                         variant="outline"
@@ -241,6 +252,13 @@ const CartPage = () => {
             </Button>
           </div>
         </>
+      )}
+      {isModalOpen && (
+        <ConfirmModal
+          message="Are you sure you want to remove this item from the cart?"
+          onConfirm={handleConfirmRemove}
+          onCancel={handleCancelRemove}
+        />
       )}
     </div>
   );

@@ -41,7 +41,7 @@
     "react-toastify": "^10.0.6",
     "recharts": "^2.15.1",
     "redux": "^5.0.1",
-    "sonner": "^1.7.1",
+    "sonner": "^1.7.3",
     "tailwind-merge": "^2.6.0",
     "typescript": "^5.7.3"
   },

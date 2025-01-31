@@ -8,11 +8,10 @@ import { AlertCircle, Currency, Trash2, X } from "lucide-react"
 import { Alert, AlertDescription } from "../../../components/UI/alert"
 import { Input } from "../../../components/UI/input"
 import PaymentComponent from "../../../utils/paymentComponent"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 import { axiosInstance } from "../../../api/axiosInstance"
 
 const CheckoutPage = () => {
-  // State management
   const [addresses, setAddresses] = useState([])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -51,7 +50,6 @@ const CheckoutPage = () => {
 
   const user = useSelector((state) => state.user.users)
 
-  // Constants
   const countries = [
     { code: "US", name: "United States" },
     { code: "GB", name: "United Kingdom" },
@@ -68,7 +66,6 @@ const CheckoutPage = () => {
     AU: ["New South Wales", "Victoria", "Queensland", "Western Australia"],
   }
 
-  // Effects
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([fetchAddresses(), fetchCartItems()])
@@ -76,7 +73,6 @@ const CheckoutPage = () => {
     fetchData()
   }, [user._id])
 
-  // API calls
   const fetchAddresses = async () => {
     try {
       setLoading(true)
@@ -221,7 +217,7 @@ const CheckoutPage = () => {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponError("Please enter a coupon code")
+      toast.error("Please enter a coupon code")
       return
     }
 
@@ -235,22 +231,21 @@ const CheckoutPage = () => {
 
       if (response.data.success) {
         const coupon = response.data.CouponData
-        console.log("pppppppppppp", coupon)
         setIsApplyingCoupon(true)
         const subtotal = calculateTotal()
 
         if (coupon.minPurchaseAmount && subtotal < coupon.minPurchaseAmount) {
-          setCouponError(`Minimum purchase amount is ₹${coupon.minPurchaseAmount}`)
+          toast.error(`Minimum purchase amount is ₹${coupon.minPurchaseAmount}`)
           return
         }
 
         if (coupon.currentUsageLimit >= coupon.maxUsageLimit) {
-          setCouponError("Coupon usage limit exceeded")
+          toast.error("Coupon usage limit exceeded")
           return
         }
 
         if (coupon.expirationDate && new Date(coupon.expirationDate) < new Date()) {
-          setCouponError("Coupon has expired")
+          toast.error("Coupon has expired")
           return
         }
         let discountAmount = (subtotal * coupon.discountValue) / 100
@@ -266,10 +261,10 @@ const CheckoutPage = () => {
 
         setCouponCode("")
       } else {
-        setCouponError(response.data.message || "Invalid coupon code")
+        toast.error(response.data.message || "Invalid coupon code")
       }
     } catch (error) {
-      setCouponError(error.response?.data?.message || "Failed to apply coupon. Please try again.")
+      toast.error(error.response?.data?.message || "Failed to apply coupon. Please try again.")
     }
   }
 
@@ -293,7 +288,7 @@ const CheckoutPage = () => {
       if (!selectedAddress) missingFields.push("delivery address")
       if (!paymentMethod) missingFields.push("payment method")
 
-      alert(`Please select ${missingFields.join(" and ")} to proceed.`)
+      toast(`Please select ${missingFields.join(" and ")} to proceed.`)
       return
     }
 
@@ -303,7 +298,7 @@ const CheckoutPage = () => {
         addressId: selectedAddress,
         paymentMethod: paymentMethod,
         totalAmount: calculateFinalTotal(),
-        couponDiscount:appliedCoupon.maxDiscountAmount,
+        couponDiscount:appliedCoupon? appliedCoupon.maxDiscountAmount:0,
         items: cartItems.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -324,7 +319,7 @@ const CheckoutPage = () => {
             window.location.href = "/user/orderplaced"
           } catch (clearCartError) {
             console.error("Error clearing cart:", clearCartError)
-            alert("Order placed successfully! (Cart clearing failed)")
+            toast("Order placed successfully! (Cart clearing failed)")
           }
         }
         else if (paymentStatus === "Failed") {
@@ -339,13 +334,13 @@ const CheckoutPage = () => {
           window.location.href = "/user/orderplaced"
         } catch (clearCartError) {
           console.error("Error clearing cart:", clearCartError)
-          alert("Order placed successfully! (Cart clearing failed)")
+          toast("Order placed successfully! (Cart clearing failed)")
         }
       } else {
         throw new Error(response.data.message)
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to place order. Please try again.")
+      toast.error(error.response?.data?.message || "Failed to place order. Please try again.")
                 window.location.href = "/user/checkout"
 
     }
@@ -377,7 +372,6 @@ const CheckoutPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Address Selection Section */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -443,7 +437,6 @@ const CheckoutPage = () => {
           </Card>
         </div>
 
-        {/* Order Summary Section */}
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
@@ -472,10 +465,9 @@ const CheckoutPage = () => {
                       </div>
                       <div className="ml-4 flex-grow">
                         <h3 className="font-medium">{item.name}</h3>
-                        {/* <p className="text-sm text-gray-600">{item.description}</p> */}
                         <div className="mt-1 text-sm">
                           <span>Qty: {item.quantity}</span>
-                          <span className="ml-4">₹{item.basePrice}</span>
+                          <span className="ml-4">₹{item.basePrice*item.quantity}</span>
                         </div>
                       </div>
                     </div>
