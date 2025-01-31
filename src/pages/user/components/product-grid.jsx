@@ -4,16 +4,18 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const ProductGrid = ({ sortOption, selectedCategory }) => {
+const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
   const userData = useSelector((store) => store.user.users);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory,currentPage,searchQuery]);
 
   useEffect(() => {
     if (sortOption && products.length > 0) {
@@ -24,16 +26,22 @@ const ProductGrid = ({ sortOption, selectedCategory }) => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      let endpoint = '/user/products';
+      // Start with base endpoint
+      let endpoint = `/user/products?page=${currentPage}&limit=4`;
       
+      // Add category and search as query parameters
       if (selectedCategory) {
-        endpoint = `/user/products?category=${selectedCategory}`;
+        endpoint += `&category=${selectedCategory}`;
       }
-
+      if (searchQuery && searchQuery.trim()) {
+        endpoint += `&search=${encodeURIComponent(searchQuery.trim())}`;
+      }
+  
       const { data } = await axiosInstance.get(endpoint);
       
       if (data.success) {
         setProducts(data.products);
+        setTotalPages(data.totalPages);
       } else {
         setError(data.message);
       }
@@ -43,7 +51,6 @@ const ProductGrid = ({ sortOption, selectedCategory }) => {
       setLoading(false);
     }
   };
-
   const sortProducts = (option) => {
     const sortedProducts = [...products];
     switch (option) {
@@ -90,6 +97,15 @@ const ProductGrid = ({ sortOption, selectedCategory }) => {
     }
     return product.basePrice.toFixed(2);
   };
+
+  const handlePageChange=(page) =>{
+    if(page >0 && page <=totalPages){
+      setCurrentPage(page);
+    }
+  }
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   if (loading) {
     return (
@@ -178,16 +194,17 @@ const ProductGrid = ({ sortOption, selectedCategory }) => {
 
       <div className="mt-12 flex justify-center">
         <nav className="flex gap-2" aria-label="Pagination">
-          {[1, 2, 3, 4, 5].map((page) => (
+        {[...Array(totalPages).keys()].map((i) => (
             <button
-              key={page}
+              key={i + 1}
+              onClick={() => handlePageChange(i + 1)}
               className={`px-4 py-2 rounded-md ${
-                page === 1
+                currentPage === i + 1
                   ? "bg-gray-900 text-white"
                   : "bg-white text-gray-900 hover:bg-gray-100"
               } transition-colors`}
             >
-              {page}
+              {i + 1}
             </button>
           ))}
         </nav>

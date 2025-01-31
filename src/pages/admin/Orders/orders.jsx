@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from "react"
 import { ChevronDown, Loader2, Package, DollarSign, Calendar, AlertCircle } from "lucide-react"
 import { axiosInstance } from "../../../api/axiosInstance"
+import Pagination from "../../../utils/pagination"
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchOrders = async () => {
     try {
-      const response = await axiosInstance.get(`/admin/getAllOrders`)
+      const response = await axiosInstance.get(`/admin/getAllOrders`,{
+        params: { page:currentPage, limit: 10 }
+
+      })
       if (response.data?.orders && Array.isArray(response.data.orders)) {
         setOrders(response.data.orders)
+        setTotalPages(response.data.totalPages);
+
       } else {
         setError("Invalid data format received from server")
       }
@@ -21,6 +29,10 @@ const AdminOrders = () => {
       setLoading(false)
     }
   }
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    fetchOrders(pageNumber);
+  };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
@@ -39,8 +51,8 @@ const AdminOrders = () => {
   }
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    fetchOrders(currentPage)
+  }, [currentPage])
 
   if (loading) {
     return (
@@ -181,6 +193,11 @@ const AdminOrders = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          handlePageChange={handlePageChange}
+        />
       </div>
     </div>
   )

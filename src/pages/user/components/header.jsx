@@ -8,13 +8,15 @@ import { useDispatch } from 'react-redux';
 import { logoutUser } from '../../../../redux/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
 
-const Header = ({ onSortChange,onCategoryChange }) => {
+const Header = ({ onSortChange,onCategoryChange,onSearch }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,6 +24,14 @@ const Header = ({ onSortChange,onCategoryChange }) => {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      onSearch(searchInput);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchInput, onSearch]);
 
   const fetchCategories = async () => {
     try {
@@ -71,6 +81,13 @@ const Header = ({ onSortChange,onCategoryChange }) => {
     e.preventDefault();
     navigate('/user/dashboard');
   }
+  const handleSearchInput = (e) => {
+    setSearchInput(e.target.value);
+  };
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    onSearch(searchInput);
+  };
 
   return (
     <header className="bg-white shadow-md">
@@ -166,15 +183,22 @@ const Header = ({ onSortChange,onCategoryChange }) => {
         )}
       </div>
           
-          <div className="relative flex-grow max-w-md">
-            <input
-              type="search"
-              placeholder="Search..."
-              className="w-full px-4 py-2 text-sm text-gray-900 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <FaSearch className="text-gray-400" />
-            </button>
+      <div className="relative flex-grow max-w-md">
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                type="search"
+                placeholder="Search products..."
+                value={searchInput}
+                onChange={handleSearchInput}
+                className="w-full px-4 py-2 text-sm text-gray-900 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+              <button 
+                type="submit"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:text-gray-600"
+              >
+                <FaSearch className="text-gray-400" />
+              </button>
+            </form>
           </div>
 
           <div className="w-full sm:w-auto">
