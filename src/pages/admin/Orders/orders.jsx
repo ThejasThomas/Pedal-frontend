@@ -73,6 +73,10 @@ const AdminOrders = () => {
   
 
   const handleStatusUpdate = async (orderId, newStatus) => {
+    console.log('id',orderId);
+    console.log('stst',newStatus);
+    
+    
     try {
       const response = await axiosInstance.put(
         `/admin/updateOrderStatus/${orderId}/status`,
@@ -164,7 +168,7 @@ const AdminOrders = () => {
                       <div>
                         <p className="text-sm text-gray-500"> Total paid</p>
                         <p className="font-medium">
-                          Rs.{(order.totalAmount || 0).toFixed(2)}
+                          Rs.{((item.price*item.quantity)-item.couponDiscount || 0).toFixed(2)}
                         </p>
                       </div>
                       

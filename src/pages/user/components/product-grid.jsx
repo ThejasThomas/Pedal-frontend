@@ -26,10 +26,8 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      // Start with base endpoint
       let endpoint = `/user/products?page=${currentPage}&limit=4`;
       
-      // Add category and search as query parameters
       if (selectedCategory) {
         endpoint += `&category=${selectedCategory}`;
       }
@@ -97,6 +95,15 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
     }
     return product.basePrice.toFixed(2);
   };
+  console.log('finalprice',calculateFinalPrice);
+  
+  const calculateDiscountPercentage = (product) => {
+    if (product.discountedAmount && product.basePrice) {
+      return Math.round((product.discountedAmount / product.basePrice) * 100);
+    }
+    return 0;
+  };
+  
 
   const handlePageChange=(page) =>{
     if(page >0 && page <=totalPages){
@@ -153,9 +160,9 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
                     <ImageOff className="w-12 h-12 text-gray-400" />
                   </div>
                 )}
-                {product.discountValue > 0 && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    {product.discountValue}% OFF
+                {product.discountedAmount > 0 && (
+                  <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full font-bold">
+                    {calculateDiscountPercentage(product)}% OFF
                   </div>
                 )}
               </div>
@@ -183,7 +190,7 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
                     Add to Cart
                   </button>
                   <button className="text-gray-500 hover:text-red-500 transition-colors">
-                    <Heart className="w-6 h-6" />
+                    {/* <Heart className="w-6 h-6" /> */}
                   </button>
                 </div>
               </div>

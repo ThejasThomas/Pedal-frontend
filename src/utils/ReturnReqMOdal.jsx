@@ -16,16 +16,24 @@ const ReturnRequestModal = ({ isOpen, onClose, onSubmit, loading }) => {
   const [explanation, setExplanation] = useState("");
   const [reason, setReason] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting:", { explanation, reason });
     if (onSubmit) {
-      onSubmit({ explanation, reason });
+      await onSubmit({ explanation, reason });
+      setExplanation("");
+      setReason("");
+      onClose();
     }
   };
 
+  const handleClose = () => {
+    setExplanation("");
+    setReason("");
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] bg-white z-50 shadow-lg">
         <DialogHeader>
           <DialogTitle>Request Return</DialogTitle>
@@ -61,7 +69,7 @@ const ReturnRequestModal = ({ isOpen, onClose, onSubmit, loading }) => {
             />
           </div>
           <DialogFooter className="flex justify-end space-x-2 border-t pt-4 bg-black">
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="secondary" onClick={handleClose}>
               Cancel
             </Button>
             <Button

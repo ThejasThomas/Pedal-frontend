@@ -112,7 +112,6 @@ const SalesReport = () => {
 
   const { summary, timeData, orderDetails } = reportData
 
-  // Convert time data to array for charts
   const chartData = Object.entries(timeData).map(([time, data]) => ({
     time,
     revenue: data.revenue,
@@ -122,7 +121,6 @@ const SalesReport = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <header>
         <div className="container mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold">Sales Report</h1>
@@ -150,7 +148,6 @@ const SalesReport = () => {
         </div>
       </header>
 
-      {/* Filter Controls */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         {filterType === "custom" && (
           <>
@@ -198,7 +195,6 @@ const SalesReport = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardHeader>
@@ -220,8 +216,7 @@ const SalesReport = () => {
         </Card>
       </div>
 
-      {/* Revenue Chart */}
-      <Card className="mb-6">
+      {/* <Card className="mb-6">
         <CardHeader>
           <CardTitle>Revenue Trend</CardTitle>
         </CardHeader>
@@ -238,7 +233,7 @@ const SalesReport = () => {
             </LineChart>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Orders Table */}
       {orderDetails.length > 0 ? (
@@ -304,7 +299,6 @@ const SalesReport = () => {
         </div>
       )}
 
-      {/* Download Buttons */}
       <div className="mt-6 flex justify-end space-x-4">
         <Button onClick={handleExcelDownload} className="bg-green-800 hover:bg-green-700 text-white">
           Download Excel

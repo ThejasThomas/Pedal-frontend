@@ -84,7 +84,12 @@ const CouponPage = () => {
                       <Users className="w-4 h-4 mr-2 text-orange-500" />
                       <span>Usage Limit: {coupon.usageLimit || 'Unlimited'}</span>
                     </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Users className="w-4 h-4 mr-2 text-orange-500" />
+                      <span>Currently Used: {coupon.currentUsageLimit || 'Unlimited'}</span>
+                    </div>
                   </div>
+                  
 
                   {/* Copy Button */}
                   <button

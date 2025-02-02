@@ -245,7 +245,7 @@ const AddCouponForm = () => {
               </div>
 
               {/* Usage Limit */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Usage Limit
                 </label>
@@ -265,7 +265,7 @@ const AddCouponForm = () => {
                 {errors.usageLimit && (
                   <span className="text-red-500 text-xs mt-1">{errors.usageLimit}</span>
                 )}
-              </div>
+              </div> */}
             </div>
 
             {/* Submit Button */}

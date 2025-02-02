@@ -60,7 +60,7 @@ const WalletPage = () => {
         <h2 className="text-2xl font-semibold mb-4">Add Funds</h2>
         <form onSubmit={handleAddFunds} className="flex items-center">
           <input
-            type="number"
+            type=""
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Enter amount"

@@ -20,15 +20,11 @@ import AddCategory from "../../../components/admin/AddCategory/AddCategory";
 import EditCategory from "../../../components/admin/AddCategory/EditCategory";
 import axios from "axios";
 
-
 const Modal = ({ children, onClose }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-      {children}
-    </div>
+    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">{children}</div>
   </div>
 );
-
 
 function AddOfferModal({ category, onClose, onOfferAdded }) {
   const [formData, setFormData] = useState({
@@ -196,13 +192,13 @@ const FormField = ({
   min,
   max,
   placeholder,
-  suffix
+  suffix,
 }) => {
   const baseClassName = "w-full bg-gray-700 rounded-lg px-4 py-2";
 
   const renderInput = () => {
     switch (type) {
-      case 'select':
+      case "select":
         return (
           <select
             value={value}
@@ -210,7 +206,7 @@ const FormField = ({
             className={baseClassName}
             required={required}
           >
-            {options.map(option => (
+            {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -224,7 +220,7 @@ const FormField = ({
               type={type}
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              className={`${baseClassName} ${suffix ? 'pr-8' : ''}`}
+              className={`${baseClassName} ${suffix ? "pr-8" : ""}`}
               min={min}
               max={max}
               required={required}
@@ -247,7 +243,6 @@ const FormField = ({
   );
 };
 
-
 function ViewOffersModal({ category, onClose }) {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -268,7 +263,8 @@ function ViewOffersModal({ category, onClose }) {
       const response = await axiosInstance.get("/admin/getAllCategoryOffers");
       if (response.data.success) {
         const categoryOffers = response.data.offers.filter(
-          offer => offer.targetId === category._id || offer.id === category._id
+          (offer) =>
+            offer.targetId === category._id || offer.id === category._id
         );
         setOffers(categoryOffers);
       }
@@ -287,10 +283,12 @@ function ViewOffersModal({ category, onClose }) {
 
   const handleDeleteOffer = async (offerId) => {
     try {
-      const response = await axiosInstance.delete(`/admin/deleteCategoryOffer/${offerId}`);
+      const response = await axiosInstance.delete(
+        `/admin/deleteCategoryOffer/${offerId}`
+      );
       if (response.data.success) {
         toast.success("Offer deleted successfully");
-        setOffers(offers.filter(offer => offer._id !== offerId));
+        setOffers(offers.filter((offer) => offer._id !== offerId));
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Error deleting offer");
@@ -301,7 +299,10 @@ function ViewOffersModal({ category, onClose }) {
     <Modal onClose={onClose}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Offers for {category.name}</h2>
-        <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-full">
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-gray-700 rounded-full"
+        >
           <XCircle size={20} />
         </button>
       </div>
@@ -344,8 +345,7 @@ function ViewOffersModal({ category, onClose }) {
       )}
     </Modal>
   );
-};
-
+}
 
 function EmptyState({ onAddCategory }) {
   return (
@@ -513,7 +513,7 @@ export default function CategoryPage() {
   };
   const renderActionMenu = (category) => {
     const hasActiveOffer = category.offers && category.offers.length > 0;
-  
+
     return (
       <div className="absolute top-0 right-full mr-2 bg-gray-800 text-white shadow-lg rounded-lg z-10 overflow-hidden">
         <button

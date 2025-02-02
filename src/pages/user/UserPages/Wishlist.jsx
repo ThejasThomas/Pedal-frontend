@@ -5,7 +5,7 @@ import { Button } from "../../../components/UI/button";
 import { Trash2, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../components/UI/dialog"
+import { axiosInstance } from "../../../api/axiosInstance";
 
 const WishlistPage = () => {
   const [wishlistData, setWishlistData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [removingProduct, setRemovingProduct] = useState(null)
+  const [addingToCart, setAddingToCart] = useState(null)
   const [confirmDialog, setConfirmDialog] = useState({ open: false, productId: null })
   const navigate = useNavigate()
   const user = useSelector((state) => state.user.users)
@@ -44,9 +46,14 @@ const WishlistPage = () => {
 
   useEffect(() => {
     fetchWishlist()
-  }, [user]) // Added user to dependencies
+  }, [user])
 
-  const handleRemoveFromWishlist = async (productId) => {
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+  };
+
+  const handleRemoveFromWishlist = async (productId, event) => {
+    event.stopPropagation();
     setConfirmDialog({ open: true, productId })
   }
 
@@ -75,10 +82,29 @@ const WishlistPage = () => {
     }
   }
 
-  const handleAddToCart = async (productId) => {
-    console.log("Add to cart:", productId)
-    // Implement add to cart functionality here
-    toast.success("Product added to cart")
+  const handleAddToCart = async (product, event) => {
+    event.stopPropagation();
+    const price = product.discountValue ? product.currentPrice : product.basePrice;
+    
+    try {
+      setAddingToCart(product.productId)
+      const response = await axiosInstance.post("/user/addToCart", {
+        productId: product.productId,
+        userId: user._id,
+        quantity: 1,
+        price,
+      })
+
+      if (response.data.success) {
+        toast.success("Product added to cart")
+      } else {
+        toast.error(response.data.message || "Failed to add product to cart")
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add product to cart")
+    } finally {
+      setAddingToCart(null)
+    }
   }
 
   if (loading) {
@@ -128,7 +154,11 @@ const WishlistPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {wishlistData.products.map((product) => (
-          <Card key={product.productId} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <Card 
+            key={product.productId} 
+            className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+            onClick={() => handleProductClick(product.productId)}
+          >
             <div className="aspect-square overflow-hidden">
               <img
                 src={product.images[0] || "/placeholder.svg"}
@@ -158,7 +188,7 @@ const WishlistPage = () => {
                     variant="outline"
                     size="icon"
                     className="text-red-500 hover:bg-red-50 border-red-200"
-                    onClick={() => handleRemoveFromWishlist(product.productId)}
+                    onClick={(e) => handleRemoveFromWishlist(product.productId, e)}
                     disabled={removingProduct === product.productId}
                   >
                     {removingProduct === product.productId ? (
@@ -170,9 +200,14 @@ const WishlistPage = () => {
                   <Button
                     size="icon"
                     className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => handleAddToCart(product.productId)}
+                    onClick={(e) => handleAddToCart(product, e)}
+                    disabled={addingToCart === product.productId}
                   >
-                    <ShoppingCart className="h-5 w-5" />
+                    {addingToCart === product.productId ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    ) : (
+                      <ShoppingCart className="h-5 w-5" />
+                    )}
                   </Button>
                 </div>
               </div>
