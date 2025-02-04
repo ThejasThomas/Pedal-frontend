@@ -7,6 +7,8 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
   const navigate = useNavigate();
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [paymentInProgress, setPaymentInProgress] = useState(false);
+  const [paymentFailed, setPaymentFailed] = useState(false);
+  const [failureReason, setFailureReason] = useState("");
 
   useEffect(() => {
     const existingScript = document.querySelector(
@@ -51,6 +53,59 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
     }
   };
 
+  const handlePaymentSuccess = (response) => {
+    if (response.razorpay_payment_id) {
+      handlePlaceOrder("Paid");
+      setPaymentFailed(false);
+      setFailureReason("");
+      setPaymentInProgress(false);
+      toast.success("Payment successful!");
+    }
+  };
+
+  const handlePaymentFailure = (reason = "Payment was not completed") => {
+    handlePlaceOrder("Failed", {
+      reason: reason,
+      failureCount: failureCount + 1
+    });
+    
+    setPaymentInProgress(false);
+    setPaymentFailed(true);
+    setFailureReason(reason);
+    toast.error(reason);
+  };
+
+  const initializePayment = () => {
+    const options = {
+      key: "rzp_test_ZOhN3ZFy8RT4rn",
+      amount: total * 100,
+      currency: "INR",
+      name: "PEDALQUEST",
+      description: "PEDALQUEST E-COMMERCE PAYMENT",
+      handler: handlePaymentSuccess,
+      prefill: {
+        name: "Thejas Thomas",
+        email: "thejasperumpallil007@gmail.com",
+        contact: "8921445614",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+      modal: {
+        ondismiss: function () {
+          handlePlaceOrder("Failed");
+          
+        },
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", function (response) {
+      handlePaymentFailure("Payment failed. Please try again");
+    });
+    rzp.open();
+  };
+
   const handleSubmit = async () => {
     if (!isScriptLoaded) {
       toast.error("Payment system not loaded. Please refresh.");
@@ -62,67 +117,41 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       if (!isAvailable) return;
 
       setPaymentInProgress(true);
-
-      const options = {
-        key: "rzp_test_fu3JZWbM4Hq2Jt",
-        amount: total * 100,
-        currency: "INR",
-        name: "PEDALQUEST",
-        description: "PEDALQUEST E-COMMERCE PAYMENT",
-        handler: function (response) {
-          if (response.razorpay_payment_id) {
-            handlePlaceOrder("Paid");
-          } else {
-            toast.error("Payment failed. Please try again.");
-            navigate("/user/checkout");
-          }
-          setPaymentInProgress(false);
-        },
-        prefill: {
-          name: "Thejas Thomas",
-          email: "thejasperumpallil007@gmail.com",
-          contact: "8921445614",
-        },
-        theme: {
-          color: "#3399cc",
-        },
-        modal: {
-          ondismiss: function () {
-            setPaymentInProgress(false);
-            navigate("/user/checkout");
-            toast.info("Payment not completed");
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        handlePlaceOrder("Failed");
-        navigate("/user/checkout");
-      });
-      rzp.open();
+      setPaymentFailed(false);
+      setFailureReason("");
+      initializePayment();
     } catch (error) {
-      setPaymentInProgress(false);
-      toast.error("Payment initialization failed");
+      handlePaymentFailure("Payment initialization failed");
     }
   };
 
   return (
-    <button
-      onClick={handleSubmit}
-      disabled={!isScriptLoaded || paymentInProgress}
-      className={`bg-black text-white mt-4 w-full h-16 rounded-md ${
-        !isScriptLoaded || paymentInProgress
-          ? "opacity-50 cursor-not-allowed"
-          : ""
-      }`}
-    >
-      {!isScriptLoaded
-        ? "Loading Payment..."
-        : paymentInProgress
-        ? "Processing Payment..."
-        : "Pay with RazorPay"}
-    </button>
+    <div className="space-y-4">
+      {paymentFailed && (
+        <div className="bg-red-50 p-4 rounded-md">
+          <p className="text-red-700 text-sm mb-2">
+            {failureReason}. You can try the payment again.
+          </p>
+        </div>
+      )}
+      <button
+        onClick={handleSubmit}
+        disabled={!isScriptLoaded || paymentInProgress}
+        className={`bg-black text-white w-full h-16 rounded-md ${
+          !isScriptLoaded || paymentInProgress
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+        }`}
+      >
+        {!isScriptLoaded
+          ? "Loading Payment..."
+          : paymentInProgress
+          ? "Processing Payment..."
+          : paymentFailed
+          ? "Retry Payment"
+          : "Pay with RazorPay"}
+      </button>
+    </div>
   );
 }
 

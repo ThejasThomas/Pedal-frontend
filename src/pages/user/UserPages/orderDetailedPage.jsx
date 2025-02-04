@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/UI/card"
 import { Button } from "../../../components/UI/button"
-import { Loader2, Package, Truck, Home, XCircle, AlertCircle, RefreshCw } from "lucide-react"
+import { Loader2, Package, Truck, Home, XCircle, AlertCircle, RefreshCw, Download } from "lucide-react"
 import { axiosInstance } from "../../../api/axiosInstance"
 import toast from "react-hot-toast"
 import ReturnRequestModal from "../../../utils/ReturnReqMOdal"
+import jsPDF from "jspdf"
+import "jspdf-autotable"
+
 const OrderDetailPage = () => {
   const { orderId } = useParams()
   const navigate = useNavigate()
@@ -88,6 +91,42 @@ const OrderDetailPage = () => {
     } finally {
       setReturnRequesting(false)
     }
+  }
+
+  const handleDownloadInvoice = () => {
+    const doc = new jsPDF()
+
+    // Add company logo or name
+    doc.setFontSize(20)
+    doc.text("PedalQuest Invoice", 105, 15, null, null, "center")
+
+    // Add order details
+    doc.setFontSize(12)
+    doc.text(`Order ID: ${order._id}`, 20, 30)
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 20, 40)
+    doc.text(`Status: ${order.orderStatus}`, 20, 50)
+
+    // Add product table
+    const tableColumn = ["Product", "Quantity", "Price", "Total"]
+    const tableRows = order.products.map((item) => [
+      item.productName,
+      item.quantity,
+      `$${item.price.toFixed(2)}`,
+      `$${(item.quantity * item.price).toFixed(2)}`,
+    ])
+
+    doc.autoTable({
+      startY: 60,
+      head: [tableColumn],
+      body: tableRows,
+    })
+
+    // Add total
+    const finalY = doc.lastAutoTable.finalY || 60
+    doc.text(`Total: $${order.totalAmount.toFixed(2)}`, 20, finalY + 10)
+
+    // Save the PDF
+    doc.save(`PedalQuest_Invoice_${order._id}.pdf`)
   }
 
   const orderStatusConfig = {
@@ -210,22 +249,28 @@ const OrderDetailPage = () => {
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <span>Order #{order._id.slice(-6)}</span>
-            {canCancel && (
-              <Button
-                variant="destructive"
-                disabled={cancellingOrders.has(order._id)}
-                onClick={() => handleCancelOrder(order._id)}
-              >
-                {cancellingOrders.has(order._id) ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Cancelling...
-                  </>
-                ) : (
-                  "Cancel Order"
-                )}
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={handleDownloadInvoice}>
+                <Download className="w-4 h-4 mr-2" />
+                Download Invoice
               </Button>
-            )}
+              {canCancel && (
+                <Button
+                  variant="destructive"
+                  disabled={cancellingOrders.has(order._id)}
+                  onClick={() => handleCancelOrder(order._id)}
+                >
+                  {cancellingOrders.has(order._id) ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    "Cancel Order"
+                  )}
+                </Button>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>

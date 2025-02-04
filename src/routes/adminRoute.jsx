@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import AdminLogin from '../pages/admin/login/adminLogin';
 import { AdminLayout } from '../pages/admin/layout/AdminLayout';
-import  Dashboard  from '../pages/admin/Dashboard/Dashboard';
+import { AdminDashboard } from '../pages/admin/Dashboard/Dashboard';
 import { ProductPage } from '../pages/admin/ProductPage/ProductsPage';
 import CategoryPage from '../pages/admin/CategoryPage/CategoryPage';
 import Order from '../pages/admin/Orders/orders';
@@ -60,7 +60,7 @@ function AdminRoute() {
           </AdminProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<AdminDashboard />} />
         <Route path="/products" element={<ProductPage />} />
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/orders" element={<Order />} />
