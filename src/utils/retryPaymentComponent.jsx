@@ -40,10 +40,10 @@ const ContinuePayment = ({ orderId, productId, total, onSuccess }) => {
         amount: Math.round(total * 100), // Amount in paisa
         currency: "INR",
         name: "PEDALQUEST",
-        // description: `Retry Payment for Order #${orderId ? orderId.slice(-6) : "N/A"}`,
+        description: `Retry Payment for Order #${orderId ? orderId.slice(-6) : "N/A"}`,
         handler: async (response) => {
           try {
-            const confirmResponse = await axiosInstance.post("/payment/retrypayment", {
+            const confirmResponse = await axiosInstance.post("/user/retrypayment", {
               orderId,
               productId,
               razorpayPaymentId: response.razorpay_payment_id,
