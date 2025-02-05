@@ -12,12 +12,13 @@ import {
   Tag,
   Percent,
 } from "lucide-react";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../../api/axiosInstance";
 import AddCategory from "../../../components/admin/AddCategory/AddCategory";
 import EditCategory from "../../../components/admin/AddCategory/EditCategory";
+import { toast } from "sonner";
 import axios from "axios";
 
 const Modal = ({ children, onClose }) => (
@@ -462,12 +463,17 @@ export default function CategoryPage() {
 
       if (response.data.success) {
         if (!newStatus) {
-          setCategories((prev) => prev.filter((cat) => cat._id !== categoryId));
+          setCategories((prev) =>
+            prev.map((cat) =>
+              cat._id === categoryId ? { ...cat, isActive: newStatus } : cat
+            )
+          );
           setAllCategories((prev) =>
-            prev.filter((cat) => cat._id !== categoryId)
+            prev.map((cat) =>
+              cat._id === categoryId ? { ...cat, isActive: newStatus } : cat
+            )
           );
         } else {
-          // If listing, update the category in both arrays
           const updatedCategory = response.data.category;
           setCategories((prev) =>
             prev.map((cat) => (cat._id === categoryId ? updatedCategory : cat))
@@ -490,6 +496,7 @@ export default function CategoryPage() {
       toast.error(
         error.response?.data?.message || "Error updating category status"
       );
+      fetchCategories();
     } finally {
       setOpenActionMenuId(null);
     }
@@ -614,7 +621,9 @@ export default function CategoryPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Categories</h1>
               <div className="text-sm text-gray-400 flex items-center gap-2">
-                <span>Dashboard</span>
+                <a href="/admin/dashboard">
+                  <span>Dashboard</span>
+                </a>{" "}
                 <span>•</span>
                 <span>Category List</span>
               </div>
@@ -642,7 +651,7 @@ export default function CategoryPage() {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-8">
-            {["All Categories", "Active", "Inactive"].map((filter) => (
+            {["All Categories"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}

@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../api/axiosInstance";
+import { useSelector } from "react-redux";
 
 function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
   const navigate = useNavigate();
@@ -9,6 +10,8 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
   const [paymentInProgress, setPaymentInProgress] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState(false);
   const [failureReason, setFailureReason] = useState("");
+
+  const user = useSelector((state) => state.user.users);
 
   useEffect(() => {
     const existingScript = document.querySelector(
@@ -63,16 +66,28 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
     }
   };
 
-  const handlePaymentFailure = (reason = "Payment was not completed") => {
-    handlePlaceOrder("Failed", {
-      reason: reason,
-      failureCount: failureCount + 1
-    });
-    
-    setPaymentInProgress(false);
-    setPaymentFailed(true);
-    setFailureReason(reason);
-    toast.error(reason);
+  const handlePaymentFailure = async (reason = "Payment was not completed") => {
+    try {
+      // First handle the order failure
+      await handlePlaceOrder("Failed", {
+        reason: reason,
+        // failureCount: failureCount + 1
+      });
+      
+      // Then clear the cart
+      await axiosInstance.post(`/user/clearcart/${user._id}`);
+      
+      setPaymentInProgress(false);
+      setPaymentFailed(true);
+      setFailureReason(reason);
+      toast.error(reason);
+      
+      // Redirect to checkout page after cart is cleared
+      navigate("/user/checkout");
+    } catch (error) {
+      console.error("Error in payment failure handling:", error);
+      toast.error("An error occurred while processing payment failure");
+    }
   };
 
   const initializePayment = () => {
@@ -83,6 +98,9 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       name: "PEDALQUEST",
       description: "PEDALQUEST E-COMMERCE PAYMENT",
       handler: handlePaymentSuccess,
+      retry: {
+        enabled: false
+      },
       prefill: {
         name: "Thejas Thomas",
         email: "thejasperumpallil007@gmail.com",
@@ -93,8 +111,7 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       },
       modal: {
         ondismiss: function () {
-          handlePlaceOrder("Failed");
-          
+          // handlePaymentFailure("Payment cancelled by user");
         },
       },
     };
@@ -105,6 +122,8 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
     });
     rzp.open();
   };
+
+
 
   const handleSubmit = async () => {
     if (!isScriptLoaded) {
@@ -121,7 +140,7 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       setFailureReason("");
       initializePayment();
     } catch (error) {
-      handlePaymentFailure("Payment initialization failed");
+      // handlePaymentFailure("Payment initialization failed");
     }
   };
 

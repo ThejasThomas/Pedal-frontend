@@ -4,6 +4,7 @@ import { axiosInstance } from "../../../api/axiosInstance";
 import logo from "../../../assets/images/Logo.png";
 import signImg from '../../../assets/images/signupImg.avif';
 import { FiUser, FiMail, FiLock, FiPhone, FiEye, FiEyeOff } from 'react-icons/fi';
+import { toast } from "sonner";
 
 export default function SignupForm() {
   const [formData, setFormData] = useState({
@@ -113,17 +114,17 @@ export default function SignupForm() {
     try {
       const response = await axiosInstance.post("/user/signup", formData);
       if (response.data.success) {
-        alert("OTP sent successfully to your email.");
+        toast.success("OTP sent successfully to your email.");
         navigate("/user/otp", { state: { email: formData.email } });
       } else {
-        alert(response.data.message || "Failed to send OTP.");
+        toast.error(response.data.message || "Failed to send OTP.");
       }
     } catch (error) {
       console.error(
         "Error during signup:",
         error.response?.data?.message || error.message
       );
-      alert(error.response?.data?.message || "Failed to sign up.");
+      toast.error(error.response?.data?.message || "Failed to sign up.");
     }
   };
 

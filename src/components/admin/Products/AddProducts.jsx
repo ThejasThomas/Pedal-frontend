@@ -8,9 +8,10 @@ import {
 } from "@heroicons/react/solid";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logo from '../../../assets/images/Logo.png';
+import logo from "../../../assets/images/Logo.png";
+import { toast } from "sonner";
 
-export default function AddProductPage() {
+export default function AddProductPage({ onSave, onCancel }) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState([]);
@@ -28,15 +29,23 @@ export default function AddProductPage() {
     status: "Draft",
     images: [],
   });
-  console.log('catt',productData.category);
-  
+  const handleCancel = () => {
+    try {
+      console.log("Cancel button clicked");
 
+      onCancel();
+    } catch (error) {
+      console.error("Navigation error:", error);
+    }
+  };
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/admin/category");
+        const response = await axios.get(
+          "http://localhost:3000/admin/category"
+        );
         if (response.data.success) {
           setCategories(response.data.categories);
         }
@@ -63,13 +72,17 @@ export default function AddProductPage() {
     const newErrors = {};
 
     if (!productData.name) newErrors.name = "Product name is required.";
-    if (!productData.description) newErrors.description = "Description is required.";
+    if (!productData.description)
+      newErrors.description = "Description is required.";
     if (!productData.basePrice) newErrors.basePrice = "Base price is required.";
-    if (isNaN(Number(productData.basePrice))) newErrors.basePrice = "Base price must be a number.";
+    if (isNaN(Number(productData.basePrice)))
+      newErrors.basePrice = "Base price must be a number.";
     if (!productData.quantity) newErrors.quantity = "Quantity is required.";
-    if (isNaN(Number(productData.quantity))) newErrors.quantity = "Quantity must be a number.";
+    if (isNaN(Number(productData.quantity)))
+      newErrors.quantity = "Quantity must be a number.";
     if (!productData.category) newErrors.category = "Category is required.";
-    if (productData.images.length === 0) newErrors.images = "At least one image is required.";
+    if (productData.images.length === 0)
+      newErrors.images = "At least one image is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -95,11 +108,11 @@ export default function AddProductPage() {
         );
 
         const imageUrl = response.data.secure_url;
-        setProductData(prevState => ({
+        setProductData((prevState) => ({
           ...prevState,
           images: [...prevState.images, imageUrl],
         }));
-        setImagePreview(prev => [...prev, imageUrl]);
+        setImagePreview((prev) => [...prev, imageUrl]);
       } catch (error) {
         console.error("Error uploading image:", error);
         alert("Failed to upload image. Please try again.");
@@ -107,7 +120,7 @@ export default function AddProductPage() {
     }
 
     if (fileRef.current) {
-      fileRef.current.value = '';
+      fileRef.current.value = "";
     }
   };
 
@@ -135,27 +148,35 @@ export default function AddProductPage() {
           category: productData.category,
         }
       );
-
-      alert("Product added successfully!");
-      setProductData({
-        name: "",
-        description: "",
-        basePrice: "",
-        discount: "",
-        quantity: "",
-        category: "",
-        tags: "",
-        status: "Draft",
-        images: [],
-      });
-      setImagePreview([]);
-      navigate('/admin/products');
+      console.log(response)
+      if (response.data) {
+        toast.success("Product added successfully!");
+        // navigate("/admin/products", { replace: true });
+        onCancel()
+        setProductData({
+          name: "",
+          description: "",
+          basePrice: "",
+          discount: "",
+          quantity: "",
+          category: "",
+          tags: "",
+          status: "Draft",
+          images: [],
+        });
+        setImagePreview([]);
+      } else {
+        toast.error(response.data.message || "Failed to add product");
+      }
     } catch (error) {
       console.error(
         "Error adding product:",
         error.response?.data || error.message
       );
-      alert("Failed to add product. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to add product. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -165,19 +186,8 @@ export default function AddProductPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       <header className="flex items-center justify-between p-6 bg-gray-800 bg-opacity-50 backdrop-blur-lg">
         <div className="flex items-center space-x-4">
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-10 h-10 rounded-full"
-          />
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-96 px-4 py-2 bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-            />
-            <SearchIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-          </div>
+          <img src={logo} alt="Logo" className="w-10 h-10 rounded-full" />
+          
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex space-x-2">
@@ -185,28 +195,32 @@ export default function AddProductPage() {
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           </div>
           <UserCircleIcon className="h-8 w-8 text-gray-400" />
-          <span className="font-medium">Thajas Thomas</span>
+          <span className="font-medium">Thejas Thomas</span>
         </div>
       </header>
 
       <main className="p-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Add Product</h1>
+            <h1 onClick={onSave} className="text-3xl font-bold">
+              Add Product
+            </h1>
           </div>
           <div className="space-x-4">
             <button
               className="px-6 py-2 border border-gray-600 rounded-md hover:bg-gray-700 transition-colors duration-300"
-              onClick={() => navigate('/admin/products')}
+              onClick={handleCancel}
+              type="button"
             >
               <XIcon className="h-5 w-5 inline-block mr-2" />
               Cancel
             </button>
             <button
               className={`px-6 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-300
-                ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+          ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={handleSubmit}
               disabled={isSubmitting}
+              type="button"
             >
               {isSubmitting ? "Adding..." : "Add Product"}
               <PlusIcon className="h-5 w-5 inline-block ml-2" />
@@ -217,7 +231,9 @@ export default function AddProductPage() {
         <div className="grid grid-cols-3 gap-8">
           <div className="col-span-2 space-y-8">
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-semibold mb-6">General Information</h2>
+              <h2 className="text-2xl font-semibold mb-6">
+                General Information
+              </h2>
               <div className="space-y-6">
                 <input
                   type="text"
@@ -239,7 +255,9 @@ export default function AddProductPage() {
                   className="w-full px-4 py-3 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                 ></textarea>
                 {errors.description && (
-                  <span className="text-red-500 text-sm">{errors.description}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.description}
+                  </span>
                 )}
               </div>
             </div>
@@ -257,8 +275,10 @@ export default function AddProductPage() {
                   id="upload-image"
                   accept="image/*"
                 />
-                <label 
-                htmlFor="upload-image" className="cursor-pointer block text-center">
+                <label
+                  htmlFor="upload-image"
+                  className="cursor-pointer block text-center"
+                >
                   <PlusIcon className="h-12 w-12 mx-auto text-gray-400" />
                   <p className="mt-2 text-gray-400">
                     Drag and drop images here, or click to add images (max 4)
@@ -305,7 +325,9 @@ export default function AddProductPage() {
                   className="w-full px-4 py-3 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                 />
                 {errors.basePrice && (
-                  <span className="text-red-500 text-sm">{errors.basePrice}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.basePrice}
+                  </span>
                 )}
               </div>
             </div>
@@ -322,7 +344,9 @@ export default function AddProductPage() {
                   className="w-full px-4 py-3 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                 />
                 {errors.quantity && (
-                  <span className="text-red-500 text-sm">{errors.quantity}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.quantity}
+                  </span>
                 )}
               </div>
             </div>
@@ -346,7 +370,9 @@ export default function AddProductPage() {
                   ))}
                 </select>
                 {errors.category && (
-                  <span className="text-red-500 text-sm">{errors.category}</span>
+                  <span className="text-red-500 text-sm">
+                    {errors.category}
+                  </span>
                 )}
                 <select
                   name="tags"
@@ -378,4 +404,3 @@ export default function AddProductPage() {
     </div>
   );
 }
-

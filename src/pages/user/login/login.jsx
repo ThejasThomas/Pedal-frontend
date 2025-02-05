@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,23 +22,23 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState(null);
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await axiosInstance.get('/user/check-auth');
-        if (response.data.success && response.data.user) {
-          dispatch(addUser(response.data.user));
-          navigate('/user/store');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const checkAuthStatus = async () => {
+  //     try {
+  //       const response = await axiosInstance.get('/user/check-auth');
+  //       if (response.data.success && response.data.user) {
+  //         dispatch(addUser(response.data.user));
+  //         navigate('/user/store');
+  //       }
+  //     } catch (error) {
+  //       console.error('Auth check failed:', error);
+  //     }
+  //   };
 
-    if (!isAuthenticated) {
-      checkAuthStatus();
-    }
-  }, [dispatch, navigate, isAuthenticated]);
+  //   if (!isAuthenticated) {
+  //     checkAuthStatus();
+  //   }
+  // }, [dispatch, navigate, isAuthenticated]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -67,6 +67,8 @@ export default function Login() {
       const response = await axiosInstance.post('/user/login', formData);
       
       if (response.data.success) {
+        console.log('msgg',response.data.message);
+        
         const userData = response.data.user;
         dispatch(addUser(userData))
         localStorage.setItem("user", JSON.stringify({
@@ -76,11 +78,15 @@ export default function Login() {
           email: userData.email,
           role: userData.role
         }));
+        
         toast.success('Login successful');
         navigate('/user/store');
       }
     } catch (error) {
+      console.log('msgg',error.message);
+
       if (error.response) {
+
         // Use the error message from the server if available
         const errorMessage = error.response.data.message || 'Invalid email or password';
         toast.error(errorMessage);

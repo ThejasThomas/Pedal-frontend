@@ -7,6 +7,7 @@ import axios from 'axios';
 import adminLoginImg from '../../../assets/images/adminLogin.jpg'
 import { useDispatch } from 'react-redux';
 import { addAdmin } from '../../../../redux/slice/adminSlice';
+import {toast} from 'sonner';
 
 
 
@@ -17,13 +18,13 @@ export default function AdminLogin() {
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
+  // const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    // setError('');
     setIsLoading(true);
 
     try {
@@ -40,7 +41,8 @@ export default function AdminLogin() {
             email:adminData.email,
             role:adminData.role
           }))
-        
+          toast.success('Admin Login successful!');
+
         navigate('/admin/dashboard');
       }
     } catch (err) {
@@ -48,19 +50,19 @@ export default function AdminLogin() {
 
         switch (err.response.status) {
           case 401:
-            setError('No admin access. Please check your credentials.');
+            toast.error('No admin access. Please check your credentials.');
             break;
           case 400:
-            setError('Invalid email or password.');
+            toast.error('Invalid email or password.');
             break;
           default:
-            setError(err.response.data.message || 'Login failed. Please try again.');
+            toast.error(err.response.data.message || 'Login failed. Please try again.');
         }
       } else if (err.request) {
 
-        setError('Network error. Please check your connection.');
+        toast.error('Network error. Please check your connection.');
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -87,12 +89,12 @@ export default function AdminLogin() {
             Admin Login
           </h1>
         </div>
-
+{/* 
         {error && (
           <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-2 rounded mb-4">
             {error}
           </div>
-        )}
+        )} */}
 
         <form onSubmit={handleSubmit} className="space-y-6 flex-grow flex flex-col justify-center">
           <div className="relative">

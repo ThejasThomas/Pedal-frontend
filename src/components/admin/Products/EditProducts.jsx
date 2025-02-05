@@ -93,7 +93,7 @@ export default function EditProductPage() {
     if (productData.discount && (isNaN(productData.discount) || productData.discount < 0 || productData.discount > 100))
       errors.discount = "Discount should be a number between 0 and 100.";
     if (!productData.category) errors.category = "Category is required.";
-    if (!productData.quantity || isNaN(productData.quantity) || productData.quantity <= 0)
+    if (!productData.quantity || isNaN(productData.quantity) || productData.quantity <= -1)
       errors.quantity = "Quantity must be a valid positive number.";
     if (productData.images.length === 0) errors.images = "At least one image is required.";
 

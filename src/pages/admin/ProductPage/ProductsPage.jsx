@@ -314,11 +314,11 @@ export function ProductPage() {
   };
 
   const handleAddProduct = (newProduct) => {
-    if (newProduct) {
-      setAllProducts((prev) => [...prev, newProduct]);
-      toast.success("Product added successfully");
-    }
+    setAllProducts((prev) => [...prev, newProduct]);
     setAddTab(false);
+    console.log("gkfmnb gfb");
+
+    toast.success("Product added successfully");
   };
 
   const handleEditProduct = (product) => {
@@ -409,7 +409,9 @@ export function ProductPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Products</h1>
               <div className="text-sm text-gray-400 flex items-center gap-2">
-                <span>Dashboard</span>
+                <a href="/admin/dashboard">
+                  <span>Dashboard</span>
+                </a>
                 <span>•</span>
                 <span>Product List</span>
               </div>

@@ -17,9 +17,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { axiosInstance } from "../../../api/axiosInstance";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "../../../utils/pagination";
+import {toast} from "sonner";
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -91,7 +92,7 @@ const Customers = () => {
       fetchCustomers();
       toast.success("User blocked successfully");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to block user");
+      toast.error(err.response?.data?.message || "Failed to block user");
       toast.error("Failed to block user");
     }
   };

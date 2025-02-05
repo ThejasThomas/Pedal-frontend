@@ -1,7 +1,15 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Loader2, RefreshCw, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  ChevronRight,
+  Package,
+  Calendar,
+} from "lucide-react";
 import { axiosInstance } from "../../../api/axiosInstance";
 import ContinuePayment from "../../../utils/retryPaymentComponent";
 
@@ -12,48 +20,32 @@ const OrderHistory = () => {
   const { users } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get(
-          `/user/getUserOrders/${users._id}`
-        );
-        if (response.data.success) {
-          setOrders(response.data.orders);
-        }
-      } catch (error) {
-        setError(error.response?.data?.message || "Failed to fetch orders");
-        console.error("Error fetching orders:", error);
-      } finally {
-        setLoading(false);
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(
+        `/user/getUserOrders/${users._id}`
+      );
+      if (response.data.success) {
+        setOrders(response.data.orders);
       }
-    };
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to fetch orders");
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [users?._id]);
 
+  useEffect(() => {
     if (users?._id) {
       fetchOrders();
     }
-  }, [users?._id]);
+  }, [users?._id, fetchOrders]);
 
   const handleOrderClick = (orderId) => {
     navigate(`/user/orderdetailedpage/${orderId}`);
   };
-
-  // const handleRetryPayment = async (e, orderId, productId) => {
-  //   e.stopPropagation();
-  //   try {
-  //     const response = await axiosInstance.post("/user/retrypayment", {
-  //       orderId,
-  //       productId,
-  //     });
-
-  //     // if (response.data.success) {
-  //     //   navigate(`/payment/retry/${orderId}`);
-  //     // }
-  //   } catch (error) {
-  //     console.error("Error retrying payment:", error);
-  //   }
-  // };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -73,113 +65,165 @@ const OrderHistory = () => {
     return statusColors[status] || "bg-gray-100 text-gray-800";
   };
 
+  const calculateOrderTotal = (products) => {
+    return products.reduce((total, item) => total + (item.quantity * item.price), 0);
+  };
+
+  const hasFailedPayments = (products) => {
+    return products.some(item => item.paymentStatus === "Failed");
+  };
+
+  const handlePaymentSuccess = useCallback((orderId) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => {
+        if (order._id === orderId) {
+          return {
+            ...order,
+            products: order.products.map(product => ({
+              ...product,
+              paymentStatus: "Paid"
+            }))
+          };
+        }
+        return order;
+      })
+    );
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500">{error}</p>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={fetchOrders}
+          className="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+        >
+          <RefreshCw className="w-5 h-5 mr-2" /> Retry
+        </button>
       </div>
     );
   }
 
   if (!orders.length) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">No orders found.</p>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Package className="w-16 h-16 text-gray-400 mb-4" />
+        <p className="text-xl text-gray-600">No orders found.</p>
+        <button
+          onClick={() => navigate("/shop")}
+          className="mt-4 px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+        >
+          Start Shopping
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Order History</h1>
-      <div className="space-y-4">
-        {orders.map((order) => (
-          <div
-            key={order._id}
-            className="bg-white shadow-md hover:shadow-lg transition-shadow rounded-lg overflow-hidden cursor-pointer"
-            onClick={() => handleOrderClick(order._id)}
-            role="button"
-            tabIndex={0}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleOrderClick(order._id);
-              }
-            }}
-          >
-            <div className="p-4 sm:p-6">
-              <div className="flex flex-wrap items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 mb-2 sm:mb-0">
-                  <span className="font-semibold">#{order._id.slice(-6)}</span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs ${getStatusColor(
-                      order.orderStatus
-                    )}`}
-                  >
-                    {order.orderStatus}
-                  </span>
+    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">Order History</h1>
+      <div className="space-y-6">
+        {orders.map((order) => {
+          const orderTotal = calculateOrderTotal(order.products);
+          const needsPayment = hasFailedPayments(order.products);
+
+          return (
+            <div
+              key={order._id}
+              className="bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+            >
+              <div className="p-6">
+                <div className="flex flex-wrap items-center justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-lg font-semibold text-gray-800">
+                      #{order._id.slice(-6)}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        order.orderStatus
+                      )}`}
+                    >
+                      {order.orderStatus}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {formatDate(order.createdAt)}
+                  </div>
                 </div>
-                <span className="text-sm text-gray-500">
-                  {formatDate(order.createdAt)}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {order.products.map((item) => (
-                  <div key={item._id} className="flex items-center space-x-4">
-                    <div className="w-16 h-16 flex-shrink-0">
-                      <img
-                        src={
-                          item.product?.images?.[0] ||
-                          "/placeholder.svg?height=64&width=64"
-                        }
-                        alt={item.productName}
-                        className="w-full h-full object-cover rounded"
+                <div className="space-y-4">
+                  {order.products.map((item) => (
+                    <div
+                      key={item._id}
+                      className="flex items-center space-x-4 py-4 border-b border-gray-200 last:border-b-0"
+                    >
+                      <div className="w-20 h-20 flex-shrink-0">
+                        <img
+                          src={
+                            item.product?.images?.[0] ||
+                            "/placeholder.svg?height=80&width=80"
+                          }
+                          alt={item.productName}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium text-gray-800">
+                          {item.productName}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-800">
+                          ₹{(item.quantity * item.price).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-800">
+                      Order Total:
+                    </span>
+                    <span className="text-lg font-bold text-gray-900">
+                      ₹{orderTotal.toFixed(2)}
+                    </span>
+                  </div>
+                  {needsPayment && (
+                    <div className="mt-4">
+                      <ContinuePayment
+                        total={orderTotal}
+                        orderId={order._id}
+                        onSuccess={() => handlePaymentSuccess(order._id)}
                       />
                     </div>
-                    <div className="flex-grow">
-                      <h3 className="font-medium text-sm">
-                        {item.productName}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        ${(item.quantity * item.price).toFixed(2)}
-                      </p>
-                      {item.paymentStatus === "Failed" && (
-                        <ContinuePayment
-                          total={item.quantity * item.price}
-                          orderId={order._id}
-                          productId={item._id}
-                        />
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-              <div className="mt-4 pt-3 border-t flex justify-between items-center">
-                <span className="text-sm text-gray-500">Total:</span>
-                <span className="font-bold text-lg">
-                  ${order.totalAmount.toFixed(2)}
-                </span>
+              <div className="bg-gray-50 px-6 py-4 flex justify-end">
+                <button
+                  onClick={() => handleOrderClick(order._id)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md 
+                  text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                  focus:ring-gray-600 transition-colors"
+                >
+                  View Details <ChevronRight className="ml-2 h-5 w-5" />
+                </button>
               </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 flex justify-end">
-              <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                View Details <ChevronRight className="ml-1 h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

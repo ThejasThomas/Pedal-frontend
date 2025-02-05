@@ -132,6 +132,9 @@ const CheckoutPage = () => {
       state: "",
     }));
   };
+  const handleAddressSelection = (addressId) => {
+    setSelectedAddress(addressId)
+  }
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -181,7 +184,7 @@ const CheckoutPage = () => {
 
       if (response.data.success) {
         await fetchAddresses();
-        alert("Address added successfully");
+        toast.success("Address added successfully");
         handleCloseModal();
       } else {
         throw new Error(response.data.message || "Failed to save address");
@@ -216,12 +219,12 @@ const CheckoutPage = () => {
 
       if (response.data.success) {
         await fetchAddresses();
-        alert("Address deleted successfully");
+        toast("Address deleted successfully");
       } else {
         throw new Error(response.data.message || "Failed to delete address");
       }
     } catch (error) {
-      alert("Failed to delete address. Please try again.");
+      toast("Failed to delete address. Please try again.");
     } finally {
       setIsDeleting(false);
       handleCancelDelete();
@@ -305,86 +308,88 @@ const CheckoutPage = () => {
     setCouponError("");
   };
 
-  const handlePlaceOrder = async (paymentStatus = 'Pending',paymentDetails = null) => {
+  const handlePlaceOrder = async (paymentStatus = 'Pending', paymentDetails = null) => {
     setValidationError({ address: false, payment: false });
 
     if (!selectedAddress || !paymentMethod) {
-      const newValidationError = {
-        address: !selectedAddress,
-        payment: !paymentMethod,
-      };
-      setValidationError(newValidationError);
+        const newValidationError = {
+            address: !selectedAddress,
+            payment: !paymentMethod,
+        };
+        setValidationError(newValidationError);
 
-      const missingFields = [];
-      if (!selectedAddress) missingFields.push("delivery address");
-      if (!paymentMethod) missingFields.push("payment method");
+        const missingFields = [];
+        if (!selectedAddress) missingFields.push("delivery address");
+        if (!paymentMethod) missingFields.push("payment method");
 
-      toast(`Please select ${missingFields.join(" and ")} to proceed.`);
-      return;
+        toast(`Please select ${missingFields.join(" and ")} to proceed.`);
+        return;
     }
 
     try {
-      let finalPaymentStatus = paymentStatus;
-      let paymentData = paymentDetails;
+        let finalPaymentStatus = paymentStatus;
+        let paymentData = paymentDetails;
 
-      if (paymentMethod === "CashOnDelivery") {
-        finalPaymentStatus = "Pending";
-      } else if (paymentMethod === "Razorpay") {
-        finalPaymentStatus = paymentStatus;  
-      }
-      const orderData = {
-        userId: user._id,
-        addressId: selectedAddress,
-        paymentMethod: paymentMethod,
-        paymentStatus: finalPaymentStatus,
-        paymentDetails: paymentData, 
-        totalAmount: calculateFinalTotal(),
-        couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : 0,
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.basePrice,
-        })),
-        orderStatus: finalPaymentStatus === "Paid" ? "ON THE ROAD" : 
-                     finalPaymentStatus === "Failed" ? "ON THE ROAD" : "PENDING",
-            };
-            console.log('finalpaymentt',finalPaymentStatus);
-            
-            if (finalPaymentStatus === "Failed") {
-              const response = await axiosInstance.post("/user/placeorder", orderData);
-              toast.error("Payment failed. Please try again.");
-              // window.location.href = "/user/checkout";
-              return;
-            }
-
-      const response = await axiosInstance.post("/user/placeorder", orderData);
-
-      if (response.data.success) {
-        if (paymentMethod === "CashOnDelivery" || finalPaymentStatus === "Paid") {
-          try {
-            await axiosInstance.post(`/user/clearcart/${user._id}`);
-            setCartItems([]);
-            toast.success("Order placed successfully!");
-            window.location.href = "/user/orderplaced";
-          } catch (clearCartError) {
-            console.error("Error clearing cart:", clearCartError);
-            toast("Order placed successfully! (Cart clearing failed)");
-            window.location.href = "/user/orderplaced";
-          }
+        if (paymentMethod === "CashOnDelivery") {
+            finalPaymentStatus = "Pending";
+        } else if (paymentMethod === "Razorpay") {
+            finalPaymentStatus = paymentStatus;  
         }
-      } else {
-        throw new Error(response.data.message);
-      }
+        
+        const orderData = {
+            userId: user._id,
+            addressId: selectedAddress,
+            paymentMethod: paymentMethod,
+            paymentStatus: finalPaymentStatus,
+            paymentDetails: paymentData, 
+            totalAmount: calculateFinalTotal(),
+            couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : 0,
+            items: cartItems.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.basePrice,
+            })),
+            orderStatus: paymentMethod === "CashOnDelivery" ? "ON THE ROAD" : 
+                        finalPaymentStatus === "Paid" ? "ON THE ROAD" : 
+                        finalPaymentStatus === "Failed" ? "ON THE ROAD" : "PENDING"
+        };
+
+        if (finalPaymentStatus === "Failed") {
+            await axiosInstance.post("/user/placeorder", orderData);
+            return;
+        }
+
+        const response = await axiosInstance.post("/user/placeorder", orderData);
+
+        if (response.data.success) {
+            if (paymentMethod === "CashOnDelivery" || finalPaymentStatus === "Paid") {
+                try {
+                    await axiosInstance.post(`/user/clearcart/${user._id}`);
+                    setCartItems([]);
+                    toast.success("Order placed successfully!");
+                    window.location.href = "/user/orderplaced";
+                } catch (clearCartError) {
+                    console.error("Error clearing cart:", clearCartError);
+                    toast("Order placed successfully! (Cart clearing failed)");
+                    window.location.href = "/user/orderplaced";
+                }
+            }
+            return true;
+        } else {
+            throw new Error(response.data.message);
+        }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-        "Failed to place order. Please try again."
-      );
-      if (paymentStatus === "Failed") {
-        window.location.href = "/user/checkout";
-      }
+        toast.error(
+            error.response?.data?.message ||
+            "Failed to place order. Please try again."
+        );
+        console.log(error);
+        
+        if (paymentStatus === "Failed") {
+            window.location.href = "/user/checkout";
+        }
     }
-  };
+};
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.totalPrice || 0), 0);
   };
@@ -620,6 +625,7 @@ const CheckoutPage = () => {
                         total={calculateFinalTotal()}
                         handlePlaceOrder={handlePlaceOrder}
                         cartItems={cartItems}
+                        isAddressSelected={!!selectedAddress}
                       />
                     ) : (
                       <Button
