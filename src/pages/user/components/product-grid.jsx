@@ -3,19 +3,23 @@ import { Heart, ImageOff, ShoppingCart } from 'lucide-react';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
-const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
-  const userData = useSelector((store) => store.user.users);
+const ProductGrid = ({ sortOption, selectedCategory, searchQuery }) => {
+  const user = useSelector((store) => store.user.users);
+  const isAuthenticated = useSelector((store) => store.user.isAuthenticated);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [addingToCart, setAddingToCart] = useState({});
+  
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory,currentPage,searchQuery]);
+  }, [selectedCategory, currentPage, searchQuery]);
 
   useEffect(() => {
     if (sortOption && products.length > 0) {
@@ -49,6 +53,7 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
       setLoading(false);
     }
   };
+
   const sortProducts = (option) => {
     const sortedProducts = [...products];
     switch (option) {
@@ -78,6 +83,54 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
     setProducts(sortedProducts);
   };
 
+  const getDiscountedPrice = (product) => {
+    if (product.discountedAmount) {
+      return product.basePrice - product.discountedAmount;
+    }
+    return product.basePrice;
+  };
+
+  const handleAddToCart = async (product) => {
+    try {
+      if (product.quantity === 0) {
+        toast("Sorry, this product is out of stock");
+        return;
+      }
+
+      // Start loading for this specific product
+      setAddingToCart(prev => ({...prev, [product._id]: true}));
+
+      if (!isAuthenticated || !user) {
+        toast("Please log in to add items to cart");
+        return;
+      }
+
+      const cartData = {
+        userId: user._id,
+        productId: product._id,
+        quantity: 1, // Default to 1 for grid view
+        price: getDiscountedPrice(product),
+      };
+
+      const response = await axiosInstance.post("/user/addToCart", cartData);
+      
+      if (response.data.success) {
+        toast("Product added to cart successfully!");
+      } else {
+        toast(response.data.message);
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        toast(error.response.data.message);
+      } else {
+        toast("Error adding product to cart");
+      }
+    } finally {
+      // Stop loading for this specific product
+      setAddingToCart(prev => ({...prev, [product._id]: false}));
+    }
+  };
+
   const getProductImage = (product) => {
     if (product.images && product.images.length > 0) {
       return product.images[0];
@@ -95,7 +148,6 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
     }
     return product.basePrice.toFixed(2);
   };
-  console.log('finalprice',calculateFinalPrice);
   
   const calculateDiscountPercentage = (product) => {
     if (product.discountedAmount && product.basePrice) {
@@ -104,12 +156,12 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
     return 0;
   };
   
-
-  const handlePageChange=(page) =>{
-    if(page >0 && page <=totalPages){
+  const handlePageChange = (page) => {
+    if (page > 0 && page <= totalPages) {
       setCurrentPage(page);
     }
-  }
+  };
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
@@ -185,12 +237,16 @@ const ProductGrid = ({ sortOption, selectedCategory,searchQuery }) => {
                   )}
                 </div>
                 <div className="flex justify-between items-center">
-                  <button className="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors flex items-center">
+                  <button 
+                    onClick={() => handleAddToCart(product)} 
+                    disabled={addingToCart[product._id]}
+                    className="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors flex items-center disabled:opacity-50"
+                  >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    Add to Cart
+                    {addingToCart[product._id] ? 'Adding...' : 'Add to Cart'}
                   </button>
                   <button className="text-gray-500 hover:text-red-500 transition-colors">
-                    {/* <Heart className="w-6 h-6" /> */}
+                    {/* Placeholder for wishlist functionality */}
                   </button>
                 </div>
               </div>

@@ -49,7 +49,7 @@ const WishlistPage = () => {
   }, [user])
 
   const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`);
+    navigate(`/user/product/${productId}`);
   };
 
   const handleRemoveFromWishlist = async (productId, event) => {

@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/UI/card"
-import { Button } from "../../../components/UI/button"
 import { Loader2, Package, Truck, Home, XCircle, AlertCircle, RefreshCw, Download } from "lucide-react"
 import { axiosInstance } from "../../../api/axiosInstance"
 import toast from "react-hot-toast"
 import ReturnRequestModal from "../../../utils/ReturnReqMOdal"
 import jsPDF from "jspdf"
 import "jspdf-autotable"
+import OrderCancellationDialog from "../../../components/UI/OrderCancellationDialog"
 
 const OrderDetailPage = () => {
   const { orderId } = useParams()
   const navigate = useNavigate()
   const [order, setOrder] = useState(null)
+  const [isCancelled, setIsCancelled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [cancellingOrders, setCancellingOrders] = useState(new Set())
   const [returnRequesting, setReturnRequesting] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -23,7 +24,9 @@ const OrderDetailPage = () => {
         setLoading(true)
         const response = await axiosInstance.get(`/user/getorderedproduct/${orderId}`)
         if (response.data.success) {
-          setOrder(response.data.order)
+          const fetchedOrder = response.data.order
+          setOrder(fetchedOrder)
+          setIsCancelled(fetchedOrder.orderStatus === "CANCELED")
         }
       } catch (error) {
         console.error("Error fetching order:", error)
@@ -45,7 +48,8 @@ const OrderDetailPage = () => {
 
       if (response.data.success) {
         toast.success("Order cancelled successfully")
-        setOrder((prev) => ({ ...prev, orderStatus: "CANCELLED" }))
+        setOrder((prev) => ({ ...prev, orderStatus: "CANCELED" }))
+        setIsCancelled(true)
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to cancel order")
@@ -155,7 +159,7 @@ const OrderDetailPage = () => {
       description: "Your order has been successfully delivered.",
       icon: Home,
     },
-    CANCELLED: {
+    CANCELED: {
       color: "text-red-500",
       description: "Your order has been cancelled.",
       icon: XCircle,
@@ -169,9 +173,26 @@ const OrderDetailPage = () => {
       { status: "SHIPPED", title: "Shipped" },
       { status: "ON THE ROAD", title: "On The Road" },
       { status: "DELIVERED", title: "Delivered" },
-      { status: "CANCELLED", title: "Cancelled" },
+      { status: "CANCELED", title: "Cancelled" },
     ]
-    const statusOrder = ["PENDING", "PROCESSED", "SHIPPED", "ON THE ROAD", "DELIVERED", "CANCELLED"]
+    if (order?.orderStatus === "CANCELED") {
+      return (
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute left-0 top-1/2 w-full h-1 bg-red-500" />
+            <div className="relative flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center">
+                  <XCircle className="w-6 h-6" />
+                </div>
+                <span className="mt-2 text-sm font-medium text-red-500">Order Cancelled</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    const statusOrder = ["PENDING", "PROCESSED", "SHIPPED", "ON THE ROAD", "DELIVERED", "CANCELED"]
     const currentStatusIndex = statusOrder.indexOf(order?.orderStatus || "PENDING")
     return (
       <div className="mt-6">
@@ -179,11 +200,11 @@ const OrderDetailPage = () => {
           <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -translate-y-1/2" />
           <div
             className={`absolute left-0 top-1/2 h-1 transition-all duration-500 ${
-              order?.orderStatus === "CANCELLED" ? "bg-red-500 w-full" : "bg-green-500"
+              order?.orderStatus === "CANCELED" ? "bg-red-500 w-full" : "bg-green-500"
             }`}
             style={{
               width:
-                order?.orderStatus === "CANCELLED"
+                order?.orderStatus === "CANCELED"
                   ? "100%"
                   : `${(currentStatusIndex / (statusOrder.length - 2)) * 100}%`,
             }}
@@ -191,10 +212,10 @@ const OrderDetailPage = () => {
           <div className="relative flex justify-between">
             {steps.map((step, index) => {
               const isActive = currentStatusIndex >= index
-              const isCancelled = order?.orderStatus === "CANCELLED" && step.status === "CANCELLED"
+              const isCancelled = order?.orderStatus === "CANCELED" && step.status === "CANCELED"
               const isCurrentStep = currentStatusIndex === index
-              if (step.status === "CANCELLED" && order?.orderStatus !== "CANCELLED") return null
-              if (step.status !== "CANCELLED" && order?.orderStatus === "CANCELLED") return null
+              if (step.status === "CANCELED" && order?.orderStatus !== "CANCELED") return null
+              if (step.status !== "CANCELED" && order?.orderStatus === "CANCELED") return null
               return (
                 <div key={step.status} className="flex flex-col items-center">
                   <div
@@ -205,7 +226,9 @@ const OrderDetailPage = () => {
                     ${isCancelled ? "bg-red-500 text-white" : ""}
                   `}
                   >
-                    {React.createElement(orderStatusConfig[step.status].icon, { className: "w-6 h-6" })}
+                    {React.createElement(orderStatusConfig[step.status].icon, {
+                      className: "w-6 h-6",
+                    })}
                   </div>
                   <span
                     className={`
@@ -225,7 +248,7 @@ const OrderDetailPage = () => {
     )
   }
 
-  const canCancel = order && !["DELIVERED", "CANCELLED"].includes(order.orderStatus?.toUpperCase())
+  const canCancel = order && !["DELIVERED", "CANCELED", "CANCELED"].includes(order.orderStatus?.toUpperCase())
 
   if (loading) {
     return (
@@ -245,38 +268,47 @@ const OrderDetailPage = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Order #{order._id.slice(-6)}</span>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold">Order #{order._id.slice(-6)}</h1>
             <div className="flex space-x-2">
-              <Button variant="outline" onClick={handleDownloadInvoice}>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center"
+                onClick={handleDownloadInvoice}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Download Invoice
-              </Button>
-              {canCancel && (
-                <Button
-                  variant="destructive"
-                  disabled={cancellingOrders.has(order._id)}
-                  onClick={() => handleCancelOrder(order._id)}
-                >
-                  {cancellingOrders.has(order._id) ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Cancelling...
-                    </>
-                  ) : (
-                    "Cancel Order"
-                  )}
-                </Button>
+              </button>
+              {canCancel && order.orderStatus !== "CANCELED" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    onClick={() => setShowCancelDialog(true)}
+                  >
+                    Cancel Order
+                  </button>
+                  <OrderCancellationDialog
+                    isOpen={showCancelDialog}
+                    onClose={() => setShowCancelDialog(false)}
+                    onConfirm={() => {
+                      handleCancelOrder(order._id)
+                      setShowCancelDialog(false)
+                    }}
+                    isLoading={cancellingOrders.has(order._id)}
+                    orderId={order._id}
+                  />
+                </>
               )}
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </div>
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Order Status</h2>
-            {getStatusSteps()}
+            {order.orderStatus === "CANCELED" ? (
+              <div className="text-red-500 font-semibold">Order Cancelled</div>
+            ) : (
+              getStatusSteps()
+            )}
             <p className="mt-4 text-gray-600">{orderStatusConfig[order.orderStatus]?.description}</p>
           </div>
           <div className="space-y-6">
@@ -293,8 +325,8 @@ const OrderDetailPage = () => {
                 ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
@@ -365,10 +397,14 @@ const ReturnRequestButton = ({
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <Button variant="secondary" onClick={() => setIsReturnModalOpen(true)} disabled={returnRequesting}>
+      <button
+        className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors flex items-center"
+        onClick={() => setIsReturnModalOpen(true)}
+        disabled={returnRequesting}
+      >
         <RefreshCw className="w-4 h-4 mr-2" />
         Request Return
-      </Button>
+      </button>
       <ReturnRequestModal
         isOpen={isReturnModalOpen}
         onClose={() => setIsReturnModalOpen(false)}

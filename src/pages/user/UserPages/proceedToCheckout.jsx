@@ -32,10 +32,13 @@ const CheckoutPage = () => {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedState, setSelectedState] = useState("");
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(true);
   const [validationError, setValidationError] = useState({
     address: false,
     payment: false,
   });
+  const DELIVERY_CHARGE = 60;
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState({
     show: false,
@@ -73,10 +76,67 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([fetchAddresses(), fetchCartItems()]);
+      await Promise.all([fetchAddresses(), fetchCartItems(),fetchWalletBalance()]);
     };
     fetchData();
   }, [user._id]);
+  const fetchWalletBalance = async () => {
+    try {
+      setIsLoadingWallet(true);
+      console.log('ididid',user._id);
+      
+      const response = await axiosInstance.get(`/user/walletbalance/${user._id}`);
+      console.log(response);
+      
+      if (response.data.success) {
+        setWalletBalance(response.data.wallet.balance);
+      } else {
+        throw new Error(
+          response.data.message || "Failed to fetch wallet balance"
+        );
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to fetch wallet balance"
+      );
+    } finally {
+      setIsLoadingWallet(false);
+    }
+  };
+
+  const handleWalletPayment = async () => {
+    try {
+      const totalAmount = calculateFinalTotal();
+      
+      if (walletBalance < totalAmount) {
+        toast.error("Insufficient wallet balance");
+        return;
+      }
+
+      const response = await axiosInstance.post("/user/walletpayment", {
+        userId: user._id,
+        amount: totalAmount,
+        orderId: null // Will be updated in the backend after order creation
+      });
+
+      if (response.data.success) {
+        // Place order with wallet payment
+        const orderSuccess = await handlePlaceOrder("Paid", {
+          method: "Wallet",
+          transactionId: response.data.transactionId,
+          amount: totalAmount
+        });
+
+        if (orderSuccess) {
+          // Update wallet balance after successful payment
+          await fetchWalletBalance();
+          toast.success("Payment successful!");
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Payment failed");
+    }
+  };
 
   const fetchAddresses = async () => {
     try {
@@ -133,8 +193,8 @@ const CheckoutPage = () => {
     }));
   };
   const handleAddressSelection = (addressId) => {
-    setSelectedAddress(addressId)
-  }
+    setSelectedAddress(addressId);
+  };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -308,88 +368,100 @@ const CheckoutPage = () => {
     setCouponError("");
   };
 
-  const handlePlaceOrder = async (paymentStatus = 'Pending', paymentDetails = null) => {
+  const handlePlaceOrder = async (
+    paymentStatus = "Pending",
+    paymentDetails = null
+  ) => {
     setValidationError({ address: false, payment: false });
 
     if (!selectedAddress || !paymentMethod) {
-        const newValidationError = {
-            address: !selectedAddress,
-            payment: !paymentMethod,
-        };
-        setValidationError(newValidationError);
+      const newValidationError = {
+        address: !selectedAddress,
+        payment: !paymentMethod,
+      };
+      setValidationError(newValidationError);
 
-        const missingFields = [];
-        if (!selectedAddress) missingFields.push("delivery address");
-        if (!paymentMethod) missingFields.push("payment method");
+      const missingFields = [];
+      if (!selectedAddress) missingFields.push("delivery address");
+      if (!paymentMethod) missingFields.push("payment method");
 
-        toast(`Please select ${missingFields.join(" and ")} to proceed.`);
-        return;
+      toast(`Please select ${missingFields.join(" and ")} to proceed.`);
+      return;
     }
 
     try {
-        let finalPaymentStatus = paymentStatus;
-        let paymentData = paymentDetails;
+      let finalPaymentStatus = paymentStatus;
+      let paymentData = paymentDetails;
 
-        if (paymentMethod === "CashOnDelivery") {
-            finalPaymentStatus = "Pending";
-        } else if (paymentMethod === "Razorpay") {
-            finalPaymentStatus = paymentStatus;  
+      if (paymentMethod === "CashOnDelivery") {
+        finalPaymentStatus = "Pending";
+      } else if (paymentMethod === "Razorpay") {
+        finalPaymentStatus = paymentStatus;
+      }
+
+      const orderData = {
+        userId: user._id,
+        addressId: selectedAddress,
+        paymentMethod: paymentMethod,
+        paymentStatus: finalPaymentStatus,
+        paymentDetails: paymentData,
+        deliveryCharge: calculateDeliveryCharge(),
+        totalAmount: calculateFinalTotal(),
+        couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : 0,
+        items: cartItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.basePrice,
+        })),
+        orderStatus:
+          paymentMethod === "CashOnDelivery"
+            ? "ON THE ROAD"
+            : finalPaymentStatus === "Paid"
+            ? "ON THE ROAD"
+            : finalPaymentStatus === "Failed"
+            ? "ON THE ROAD"
+            : "PENDING",
+      };
+
+      if (finalPaymentStatus === "Failed") {
+        await axiosInstance.post("/user/placeorder", orderData);
+        return;
+      }
+
+      const response = await axiosInstance.post("/user/placeorder", orderData);
+
+      if (response.data.success) {
+        if (
+          paymentMethod === "CashOnDelivery" ||
+          finalPaymentStatus === "Paid"
+        ) {
+          try {
+            await axiosInstance.post(`/user/clearcart/${user._id}`);
+            setCartItems([]);
+            toast.success("Order placed successfully!");
+            window.location.href = "/user/orderplaced";
+          } catch (clearCartError) {
+            console.error("Error clearing cart:", clearCartError);
+            toast("Order placed successfully! (Cart clearing failed)");
+            window.location.href = "/user/orderplaced";
+          }
         }
-        
-        const orderData = {
-            userId: user._id,
-            addressId: selectedAddress,
-            paymentMethod: paymentMethod,
-            paymentStatus: finalPaymentStatus,
-            paymentDetails: paymentData, 
-            totalAmount: calculateFinalTotal(),
-            couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : 0,
-            items: cartItems.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.basePrice,
-            })),
-            orderStatus: paymentMethod === "CashOnDelivery" ? "ON THE ROAD" : 
-                        finalPaymentStatus === "Paid" ? "ON THE ROAD" : 
-                        finalPaymentStatus === "Failed" ? "ON THE ROAD" : "PENDING"
-        };
-
-        if (finalPaymentStatus === "Failed") {
-            await axiosInstance.post("/user/placeorder", orderData);
-            return;
-        }
-
-        const response = await axiosInstance.post("/user/placeorder", orderData);
-
-        if (response.data.success) {
-            if (paymentMethod === "CashOnDelivery" || finalPaymentStatus === "Paid") {
-                try {
-                    await axiosInstance.post(`/user/clearcart/${user._id}`);
-                    setCartItems([]);
-                    toast.success("Order placed successfully!");
-                    window.location.href = "/user/orderplaced";
-                } catch (clearCartError) {
-                    console.error("Error clearing cart:", clearCartError);
-                    toast("Order placed successfully! (Cart clearing failed)");
-                    window.location.href = "/user/orderplaced";
-                }
-            }
-            return true;
-        } else {
-            throw new Error(response.data.message);
-        }
+        return true;
+      } else {
+        throw new Error(response.data.message);
+      }
     } catch (error) {
-        toast.error(
-            error.response?.data?.message ||
-            "Failed to place order. Please try again."
-        );
-        console.log(error);
-        
-        if (paymentStatus === "Failed") {
-            window.location.href = "/user/checkout";
-        }
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to place order. Please try again."
+      );
+      console.log(error);
+
+      if (paymentStatus === "Failed") {
+        window.location.href = "/user/checkout";
+      }
     }
-};
+  };
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.totalPrice || 0), 0);
   };
@@ -397,10 +469,15 @@ const CheckoutPage = () => {
   const calculateDiscount = () => {
     return appliedCoupon ? appliedCoupon.discountAmount : 0;
   };
+  const calculateDeliveryCharge = () => {
+    return paymentMethod === "CashOnDelivery" ? DELIVERY_CHARGE : 0;
+  };
 
   const calculateFinalTotal = () => {
     const subtotal = calculateTotal();
-    return subtotal - calculateDiscount();
+    const discount = calculateDiscount();
+    const deliveryCharge = calculateDeliveryCharge();
+    return subtotal - discount + deliveryCharge;
   };
 
   const handleCloseModal = () => setShowModal(false);
@@ -584,6 +661,39 @@ const CheckoutPage = () => {
                         <div className="flex items-center space-x-2">
                           <input
                             type="radio"
+                            id="wallet"
+                            name="paymentMethod"
+                            value="Wallet"
+                            checked={paymentMethod === "Wallet"}
+                            onChange={() => setPaymentMethod("Wallet")}
+                            className="form-radio h-4 w-4 text-blue-600"
+                          />
+                          <Label htmlFor="wallet" className="flex items-center">
+                            <span>
+                              Wallet Balance (₹{walletBalance.toFixed(2)})
+                            </span>
+                            {isLoadingWallet && (
+                              <div className="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                            )}
+                          </Label>
+                        </div>
+                        {paymentMethod === "Wallet" &&
+                          walletBalance < calculateFinalTotal() && (
+                            <Alert
+                              variant="warning"
+                              className="bg-yellow-50 border-yellow-200 mt-2"
+                            >
+                              <AlertCircle className="h-4 w-4 text-yellow-600" />
+                              <AlertDescription className="text-yellow-700">
+                                Insufficient wallet balance. Available: ₹
+                                {walletBalance.toFixed(2)}, Required: ₹
+                                {calculateFinalTotal()}
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
                             id="cod"
                             name="paymentMethod"
                             value="CashOnDelivery"
@@ -620,7 +730,33 @@ const CheckoutPage = () => {
                         </Alert>
                       )}
                     </div>
-                    {paymentMethod === "Razorpay" ? (
+                    {paymentMethod === "Wallet" ? (
+                      <Button
+                        onClick={handleWalletPayment}
+                        className={`w-full mt-4 ${
+                          selectedAddress &&
+                          paymentMethod &&
+                          walletBalance >= calculateFinalTotal()
+                            ? "bg-green-500 hover:bg-green-600"
+                            : "bg-gray-400 cursor-not-allowed"
+                        }`}
+                        disabled={
+                          !selectedAddress ||
+                          !paymentMethod ||
+                          cartItems.length === 0 ||
+                          walletBalance < calculateFinalTotal()
+                        }
+                      >
+                        Pay with Wallet
+                      </Button>
+                    ) : paymentMethod === "Razorpay" ? (
+                      <PaymentComponent
+                        total={calculateFinalTotal()}
+                        handlePlaceOrder={handlePlaceOrder}
+                        cartItems={cartItems}
+                        isAddressSelected={!!selectedAddress}
+                      />
+                    ) : paymentMethod === "Razorpay" ? (
                       <PaymentComponent
                         total={calculateFinalTotal()}
                         handlePlaceOrder={handlePlaceOrder}
@@ -666,6 +802,12 @@ const CheckoutPage = () => {
                       <span>₹{calculateFinalTotal()}</span>
                     </div>
                   </div>
+                </div>
+              )}
+              {paymentMethod === "CashOnDelivery" && (
+                <div className="flex justify-between">
+                  <span>Delivery Charge</span>
+                  <span>₹{DELIVERY_CHARGE}</span>
                 </div>
               )}
             </CardContent>
