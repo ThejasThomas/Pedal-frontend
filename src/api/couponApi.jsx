@@ -4,8 +4,8 @@ export const  AddCouponApi = async (coupon)=>{
     return await axiosInstance.post("/admin/addCoupon",{coupon})
 }
 
-export const FetchCouponsApi = async () => {
-    return await axiosInstance.get("/admin/fetchCoupons");
+export const FetchCouponsApi = async (page,limit) => {
+    return await axiosInstance.get(`/admin/fetchCoupons?page=${page}&limit=${limit}`);
   };
   
   export const deleteCouponApi = async (_id) => {

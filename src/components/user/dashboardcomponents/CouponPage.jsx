@@ -48,7 +48,6 @@ const CouponPage = () => {
                 key={coupon._id} 
                 className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
               >
-                {/* Coupon Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                   <div className="flex items-center justify-between">
                     <span className="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
@@ -60,7 +59,6 @@ const CouponPage = () => {
                   </div>
                 </div>
 
-                {/* Coupon Body */}
                 <div className="p-6">
                   <p className="text-gray-600 mb-4">{coupon.description}</p>
                   
@@ -69,7 +67,7 @@ const CouponPage = () => {
                       <IndianRupee className="w-4 h-4 mr-2 text-green-500" />
                       <span>Min. Purchase: ₹{coupon.minPurchaseAmount}</span>
                     </div>
-                    
+     
                     <div className="flex items-center text-sm text-gray-600">
                       <IndianRupee className="w-4 h-4 mr-2 text-blue-500" />
                       <span>Max Discount: ₹{coupon.maxDiscountAmount}</span>
@@ -91,7 +89,6 @@ const CouponPage = () => {
                   </div>
                   
 
-                  {/* Copy Button */}
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(coupon.code);

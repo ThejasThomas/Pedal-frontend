@@ -68,13 +68,10 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
 
   const handlePaymentFailure = async (reason = "Payment was not completed") => {
     try {
-      // First handle the order failure
       await handlePlaceOrder("Failed", {
         reason: reason,
-        // failureCount: failureCount + 1
       });
       
-      // Then clear the cart
       await axiosInstance.post(`/user/clearcart/${user._id}`);
       
       setPaymentInProgress(false);
@@ -82,7 +79,6 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       setFailureReason(reason);
       toast.error(reason);
       
-      // Redirect to checkout page after cart is cleared
       navigate("/user/checkout");
     } catch (error) {
       console.error("Error in payment failure handling:", error);
@@ -111,7 +107,6 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       },
       modal: {
         ondismiss: function () {
-          // handlePaymentFailure("Payment cancelled by user");
         },
       },
     };
@@ -140,7 +135,7 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       setFailureReason("");
       initializePayment();
     } catch (error) {
-      // handlePaymentFailure("Payment initialization failed");
+      
     }
   };
 

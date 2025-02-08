@@ -87,18 +87,17 @@ export default function EnhancedProductDetail() {
       }
 
       setAddingToWishlist(true);
-      console.log('Request data:', {
+      console.log("Request data:", {
         product_id: id,
-        user_id: user._id
+        user_id: user._id,
       });
       const response = await addToWishListApi(id, user._id);
-      console.log('Response:', response);
-
+      console.log("Response:", response);
 
       if (response.data.success) {
         toast("Product added to wishlist successfully!");
       } else {
-      toast(response.data.message || "Error adding to wishlist");
+        toast(response.data.message || "Error adding to wishlist");
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -134,7 +133,7 @@ export default function EnhancedProductDetail() {
       if (response.data.success) {
         toast("Product added to cart successfully!");
       } else {
-       toast(response.data.message);
+        toast(response.data.message);
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -381,25 +380,29 @@ export default function EnhancedProductDetail() {
                 ₹{product.basePrice.toFixed(2)}
               </span>
               <span className="text-4xl font-bold text-blue-600">
-              ₹{getDiscountedPrice(product).toFixed(2)}
+                ₹{getDiscountedPrice(product).toFixed(2)}
               </span>
               {product.discountValue > 0 && (
-            <span className="text-lg font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
-              {getDiscountPercentage(product)}% off
-            </span>
-          )}
+                <span className="text-lg font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+                  {getDiscountPercentage(product)}% off
+                </span>
+              )}
             </div>
             <p className="text-gray-600 mb-6">{product.description}</p>
             <div className="mb-6">
               <h3 className="font-semibold text-gray-800 mb-2">Quantity</h3>
               <div className="flex items-center text-gray-600 mb-2">
                 <Package className="w-5 h-5 mr-2" />
-                {isOutOfStock ? (
+                {product.quantity >= 10 ? (
+                  <span className="text-green-600 font-semibold">In Stock</span>
+                ) : product.quantity > 1 ? (
+                  <span className="text-yellow-600 font-semibold">
+                    Few items left in stock
+                  </span>
+                ) : (
                   <span className="text-red-600 font-semibold">
                     Out of Stock
                   </span>
-                ) : (
-                  <span>{product.quantity} items left in stock</span>
                 )}
               </div>
               {!isOutOfStock && (

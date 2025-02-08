@@ -224,15 +224,15 @@ const ProductGrid = ({ sortOption, selectedCategory, searchQuery }) => {
                   {product.discountedAmount ? (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-900 font-semibold">
-                        ${calculateFinalPrice(product)}
+                        Rs.{calculateFinalPrice(product)}
                       </span>
                       <span className="text-gray-500 text-sm line-through">
-                        ${product.basePrice.toFixed(2)}
+                        Rs.{product.basePrice.toFixed(2)}
                       </span>
                     </div>
                   ) : (
                     <span className="text-gray-900">
-                      ${product.basePrice.toFixed(2)}
+                      Rs.{product.basePrice.toFixed(2)}
                     </span>
                   )}
                 </div>
@@ -246,7 +246,6 @@ const ProductGrid = ({ sortOption, selectedCategory, searchQuery }) => {
                     {addingToCart[product._id] ? 'Adding...' : 'Add to Cart'}
                   </button>
                   <button className="text-gray-500 hover:text-red-500 transition-colors">
-                    {/* Placeholder for wishlist functionality */}
                   </button>
                 </div>
               </div>

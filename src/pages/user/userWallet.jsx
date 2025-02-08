@@ -1,24 +1,47 @@
-import React, { useState, useEffect } from "react"
-import axios from "axios"
+import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-import { toast } from "react-toastify"
+import { toast } from "sonner"
 import { axiosInstance } from "../../api/axiosInstance"
+import Pagination from "../../utils/pagination"
 
 const WalletPage = () => {
   const [walletData, setWalletData] = useState(null)
   const [amount, setAmount] = useState("")
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false)
+
   const user = useSelector((store) => store.user.users)
 
   useEffect(() => {
-    fetchWalletData()
-  }, [])
+    fetchWalletData(currentPage)
+    loadRazorpayScript()
+  }, [currentPage])
 
-  const fetchWalletData = async () => {
+  const loadRazorpayScript = () => {
+    const script = document.createElement("script")
+    script.src = "https://checkout.razorpay.com/v1/checkout.js"
+    script.async = true
+    script.onload = () => setIsScriptLoaded(true)
+    script.onerror = () => {
+      toast.error("Failed to load payment system")
+      setIsScriptLoaded(false)
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }
+
+  const fetchWalletData = async (page = 1) => {
     try {
       setLoading(true)
-      const response = await axiosInstance.get(`/user/wallet/${user._id}`)
-      setWalletData(response.data)
+      const response = await axiosInstance.get(`/user/wallet/${user._id}?page=${page}`)
+      setWalletData(response.data.wallet)
+      setTotalPages(response.data.totalPages)
+      setCurrentPage(response.data.currentPage)
     } catch (error) {
       toast.error("Failed to fetch wallet data")
     } finally {
@@ -26,21 +49,62 @@ const WalletPage = () => {
     }
   }
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
+
   const handleAddFunds = async (e) => {
     e.preventDefault()
-    console.log('userId',user._id);
-    
-    try {
-      const response = await axiosInstance.post(`/user/walletadd/`, {
-        userId: user._id,
-        amount: Number.parseFloat(amount),
-      })
-      setWalletData(response.data)
-      setAmount("")
-      toast.success("Funds added successfully")
-    } catch (error) {
-      toast.error("Failed to add funds")
+    if (!isScriptLoaded) {
+      toast.error("Payment system not loaded. Please refresh.")
+      return
     }
+
+    const enteredAmount = Number.parseFloat(amount)
+
+    if (!enteredAmount || enteredAmount <= 0) {
+      toast.error("Enter a valid amount")
+      return
+    }
+    if (enteredAmount > 10000) {
+      toast.error("You cannot add more than ₹10,000 at a time")
+      return
+    }
+    const options = {
+      key: "rzp_test_ZOhN3ZFy8RT4rn", 
+      amount: Number.parseFloat(amount) * 100,
+      currency: "INR",
+      name: "PEDALQUEST",
+      description: "Add funds to wallet",
+      handler: async (response) => {
+        if (response.razorpay_payment_id) {
+          try {
+            const addFundsResponse = await axiosInstance.post(`/user/walletadd/`, {
+              userId: user._id,
+              amount: Number.parseFloat(amount),
+              paymentId: response.razorpay_payment_id,
+            })
+            setWalletData(addFundsResponse.data)
+            setAmount("")
+            toast.success(`${amount} rupees added successfully`)
+            fetchWalletData(currentPage)
+          } catch (error) {
+            toast.error("Failed to add funds to wallet")
+          }
+        }
+      },
+      prefill: {
+        name: user.name,
+        email: user.email,
+        contact: user.phone,
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    }
+
+    const rzp = new window.Razorpay(options)
+    rzp.open()
   }
 
   if (loading) {
@@ -60,7 +124,7 @@ const WalletPage = () => {
         <h2 className="text-2xl font-semibold mb-4">Add Funds</h2>
         <form onSubmit={handleAddFunds} className="flex items-center">
           <input
-            type=""
+            type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Enter amount"
@@ -72,8 +136,9 @@ const WalletPage = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-6 py-2 rounded-r hover:bg-blue-600 transition duration-200"
+            disabled={!isScriptLoaded}
           >
-            Add Funds
+            {isScriptLoaded ? "Add Funds" : "Loading..."}
           </button>
         </form>
       </div>
@@ -99,7 +164,9 @@ const WalletPage = () => {
                     </td>
                     <td className="py-3 px-6 text-left">
                       <span
-                        className={`font-medium ${transaction.transactionType === "credit" ? "text-green-600" : "text-red-600"}`}
+                        className={`font-medium ${
+                          transaction.transactionType === "credit" ? "text-green-600" : "text-red-600"
+                        }`}
                       >
                         {transaction.transactionType.charAt(0).toUpperCase() + transaction.transactionType.slice(1)}
                       </span>
@@ -122,6 +189,7 @@ const WalletPage = () => {
                 ))}
               </tbody>
             </table>
+            <Pagination totalPages={totalPages} currentPage={currentPage} handlePageChange={handlePageChange} />
           </div>
         ) : (
           <p className="text-gray-500">No transactions found.</p>

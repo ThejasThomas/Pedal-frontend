@@ -3,31 +3,37 @@ import { useNavigate } from "react-router-dom"
 import { Trash2, Ticket, Tag, Calendar, Users, IndianRupee, FolderX, Loader2, Percent } from "lucide-react"
 import { toast } from "sonner"
 import { deleteCouponApi, FetchCouponsApi } from "../../../api/couponApi"
+import Pagination from "../../../utils/pagination";
 
 export default function CouponManagement() {
   const navigate = useNavigate()
   const [coupons, setCoupons] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 4;
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = async (page = 1) => {
     try {
-      setIsLoading(true)
-      const response = await FetchCouponsApi()
-      setCoupons(response.data.Coupons)
+      setIsLoading(true);
+      const response = await FetchCouponsApi(page, limit);
+      setCoupons(response.data.coupons);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.currentPage);
     } catch (err) {
-      toast.error("Failed to fetch coupons")
-      console.error(err)
+      toast.error("Failed to fetch coupons");
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this coupon?")) {
       try {
         await deleteCouponApi(id)
         toast.success("Coupon deleted successfully")
-        fetchCoupons()
+        fetchCoupons(currentPage)
       } catch (err) {
         toast.error("Failed to delete coupon")
         console.error(err)
@@ -36,8 +42,8 @@ export default function CouponManagement() {
   }
 
   useEffect(() => {
-    fetchCoupons()
-  }, [])
+    fetchCoupons(currentPage)
+  }, [currentPage])
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -64,6 +70,7 @@ export default function CouponManagement() {
             <p className="text-gray-500 text-lg">Create a new coupon to get started.</p>
           </div>
         ) : (
+          <>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {coupons.map((coupon) => (
               <div
@@ -101,15 +108,17 @@ export default function CouponManagement() {
                     <span className="font-medium text-purple-800">
                       {new Date(coupon.expirationDate).toLocaleDateString()}
                     </span>
-                  </div>
-                  {/* <div className="flex items-center bg-orange-50 p-2 rounded-lg">
-                    <Users className="w-5 h-5 mr-2 text-orange-600" />
-                    <span className="font-medium text-orange-800">Limit: {coupon.currentUsageLimit || "Unlimited"}</span>
-                  </div> */}
+                  </div>               
                 </div>
               </div>
             ))}
           </div>
+          <Pagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          handlePageChange={setCurrentPage}
+        />
+        </>
         )}
       </div>
     </div>

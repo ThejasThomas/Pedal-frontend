@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -12,22 +10,26 @@ import {
 } from "lucide-react";
 import { axiosInstance } from "../../../api/axiosInstance";
 import ContinuePayment from "../../../utils/retryPaymentComponent";
+import Pagination from "../../../utils/pagination";
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); 
   const { users } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (page) => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(
-        `/user/getUserOrders/${users._id}`
+        `/user/getUserOrders/${users._id}?page=${page}&limit=4`
       );
       if (response.data.success) {
         setOrders(response.data.orders);
+        setTotalPages(response.data.totalPages);
       }
     } catch (error) {
       setError(error.response?.data?.message || "Failed to fetch orders");
@@ -41,10 +43,14 @@ const OrderHistory = () => {
     if (users?._id) {
       fetchOrders();
     }
-  }, [users?._id, fetchOrders]);
+  }, [users?._id,currentPage, fetchOrders]);
 
   const handleOrderClick = (orderId) => {
     navigate(`/user/orderdetailedpage/${orderId}`);
+  };
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    fetchOrders(pageNumber); 
   };
 
   const formatDate = (dateString) => {
@@ -65,12 +71,27 @@ const OrderHistory = () => {
     return statusColors[status] || "bg-gray-100 text-gray-800";
   };
 
+  const getPaymentStatusColor = (status) => {
+    const paymentColors = {
+      Paid: "bg-green-100 text-green-800",
+      Failed: "bg-red-100 text-red-800",
+      Pending: "bg-yellow-100 text-yellow-800",
+    };
+    return paymentColors[status] || "bg-gray-100 text-gray-800";
+  };
+
   const calculateOrderTotal = (products) => {
     return products.reduce((total, item) => total + (item.quantity * item.price), 0);
   };
 
   const hasFailedPayments = (products) => {
     return products.some(item => item.paymentStatus === "Failed");
+  };
+
+  const getOverallPaymentStatus = (products) => {
+    if (products.every(item => item.paymentStatus === "Paid")) return "Paid";
+    if (products.some(item => item.paymentStatus === "Failed")) return "Failed";
+    return "Pending";
   };
 
   const handlePaymentSuccess = useCallback((orderId) => {
@@ -134,6 +155,7 @@ const OrderHistory = () => {
         {orders.map((order) => {
           const orderTotal = calculateOrderTotal(order.products);
           const needsPayment = hasFailedPayments(order.products);
+          const paymentStatus = getOverallPaymentStatus(order.products);
 
           return (
             <div
@@ -152,6 +174,13 @@ const OrderHistory = () => {
                       )}`}
                     >
                       {order.orderStatus}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                        paymentStatus
+                      )}`}
+                    >
+                      Payment: {paymentStatus}
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
@@ -181,6 +210,9 @@ const OrderHistory = () => {
                         </h3>
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Payment Status: {item.paymentStatus}
                         </p>
                       </div>
                       <div className="text-right">
@@ -225,6 +257,11 @@ const OrderHistory = () => {
           );
         })}
       </div>
+      <Pagination
+        totalPages={totalPages}
+        currentPage={currentPage}
+        handlePageChange={handlePageChange}
+      />
     </div>
   );
 };

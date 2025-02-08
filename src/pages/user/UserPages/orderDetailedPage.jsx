@@ -100,23 +100,20 @@ const OrderDetailPage = () => {
   const handleDownloadInvoice = () => {
     const doc = new jsPDF()
 
-    // Add company logo or name
     doc.setFontSize(20)
     doc.text("PedalQuest Invoice", 105, 15, null, null, "center")
 
-    // Add order details
     doc.setFontSize(12)
     doc.text(`Order ID: ${order._id}`, 20, 30)
     doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 20, 40)
     doc.text(`Status: ${order.orderStatus}`, 20, 50)
 
-    // Add product table
     const tableColumn = ["Product", "Quantity", "Price", "Total"]
     const tableRows = order.products.map((item) => [
       item.productName,
       item.quantity,
-      `$${item.price.toFixed(2)}`,
-      `$${(item.quantity * item.price).toFixed(2)}`,
+      `Rs.${item.price.toFixed(2)}`,
+      `Rs.${(item.quantity * item.price).toFixed(2)}`,
     ])
 
     doc.autoTable({
@@ -127,7 +124,7 @@ const OrderDetailPage = () => {
 
     // Add total
     const finalY = doc.lastAutoTable.finalY || 60
-    doc.text(`Total: $${order.totalAmount.toFixed(2)}`, 20, finalY + 10)
+    doc.text(`Total: Rs.${order.totalAmount.toFixed(2)}`, 20, finalY + 10)
 
     // Save the PDF
     doc.save(`PedalQuest_Invoice_${order._id}.pdf`)
@@ -362,12 +359,12 @@ const ProductItem = ({ item, order, onReturnRequest, returnRequesting }) => {
         <h3 className="font-medium">{item.productName}</h3>
         <p className="text-sm text-gray-500">{item.productDescription}</p>
         <div className="mt-1 text-sm">
-          Quantity: {item.quantity} × ${item.price?.toFixed(2)}
+          Quantity: {item.quantity} × Rs.{item.price?.toFixed(2)}
         </div>
         {getReturnStatusDisplay()}
       </div>
       <div className="text-right">
-        <div className="font-medium">${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</div>
+        <div className="font-medium">Rs.{((item.quantity || 0) * (item.price || 0)).toFixed(2)}</div>
       </div>
       <ReturnRequestButton
         order={order}

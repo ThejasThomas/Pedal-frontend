@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { Tag, Calendar, Users, Save, ArrowLeft } from 'lucide-react';
-import { Card, CardHeader, CardTitle } from '../../../components/UI/card';
-import { AddCouponApi } from '../../../api/couponApi';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Tag, Calendar, Users, Save, ArrowLeft } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "../../../components/UI/card";
+import { AddCouponApi } from "../../../api/couponApi";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddCouponForm = () => {
-  const navigate =useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    code: '',
-    description: '',
-    discountValue: '',
-    minPurchaseAmount: '',
-    maxDiscountAmount: '',
-    expirationDate: '',
-    usageLimit: ''
+    code: "",
+    description: "",
+    discountValue: "",
+    minPurchaseAmount: "",
+    maxDiscountAmount: "",
+    expirationDate: "",
+    usageLimit: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -23,72 +23,89 @@ const AddCouponForm = () => {
     const newErrors = {};
 
     if (!data.code) {
-      newErrors.code = 'Coupon code is required';
+      newErrors.code = "Coupon code is required";
+    } else if (/\s/.test(data.code)) {
+      newErrors.code = "Coupon code cannot contain spaces";
     }
-    
+
     if (!data.description) {
-      newErrors.description = 'Description is required';
+      newErrors.description = "Description is required";
     }
-    
-    if (!data.discountValue || data.discountValue <= 0 || data.discountValue > 100) {
-      newErrors.discountValue = 'Please enter a valid discount value between 0 and 100';
+
+    if (
+      !data.discountValue ||
+      data.discountValue <= 0 ||
+      data.discountValue > 100
+    ) {
+      newErrors.discountValue =
+        "Please enter a valid discount value between 0 and 100";
     }
-    
+
     if (data.minPurchaseAmount && data.minPurchaseAmount < 0) {
-      newErrors.minPurchaseAmount = 'Minimum purchase amount cannot be negative';
+      newErrors.minPurchaseAmount =
+        "Minimum purchase amount cannot be negative";
     }
-    
+
     if (data.maxDiscountAmount && data.maxDiscountAmount < 0) {
-      newErrors.maxDiscountAmount = 'Maximum discount amount cannot be negative';
+      newErrors.maxDiscountAmount =
+        "Maximum discount amount cannot be negative";
     }
-    
+
     if (!data.expirationDate) {
-      newErrors.expirationDate = 'Expiration date is required';
+      newErrors.expirationDate = "Expiration date is required";
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const selectedDate = new Date(data.expirationDate);
+      
+      if (selectedDate <= today) {
+        newErrors.expirationDate = "Expiration date must be in the future";
+      }
     }
     
+
     return newErrors;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateForm(formData);
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    try{
-      const coupon ={
-        code:formData.code,
-        description:formData.description,
-        discount_value:parseFloat(formData.discountValue),
-        min_purchase_amount:parseFloat(formData.minPurchaseAmount),
-        max_discount_amount:parseFloat(formData.maxDiscountAmount),
-        expiration_date:new Date(formData.expirationDate),
-        usage_limit:parseInt(formData.usageLimit),
-        is_active:true,
-      }
-      const response=await AddCouponApi(coupon)
-      toast.success(response.data.message)
-      navigate('/admin/coupon')
-
-    }catch(err){
+    try {
+      const coupon = {
+        code: formData.code,
+        description: formData.description,
+        discount_value: parseFloat(formData.discountValue),
+        min_purchase_amount: parseFloat(formData.minPurchaseAmount),
+        max_discount_amount: parseFloat(formData.maxDiscountAmount),
+        expiration_date: new Date(formData.expirationDate),
+        usage_limit: parseInt(formData.usageLimit),
+        is_active: true,
+      };
+      const response = await AddCouponApi(coupon);
+      toast.success(response.data.message);
+      navigate("/admin/coupon");
+    } catch (err) {
       console.log(err);
-      if(err.response){
-        toast.error(err.response.data.message)
+      if (err.response) {
+        toast.error(err.response.data.message);
       }
-      
     }
 
-    console.log('Form submitted:', formData);
+    console.log("Form submitted:", formData);
   };
 
   return (
@@ -102,7 +119,7 @@ const AddCouponForm = () => {
           Back
         </button>
       </div>
-      
+
       <div className="w-full max-w-2xl">
         <Card className="border border-gray-200">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
@@ -110,7 +127,7 @@ const AddCouponForm = () => {
               Create Coupon
             </CardTitle>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coupon Code */}
@@ -132,7 +149,9 @@ const AddCouponForm = () => {
                   />
                 </div>
                 {errors.code && (
-                  <span className="text-red-500 text-xs mt-1">{errors.code}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.code}
+                  </span>
                 )}
               </div>
 
@@ -149,7 +168,9 @@ const AddCouponForm = () => {
                   onChange={handleInputChange}
                 />
                 {errors.description && (
-                  <span className="text-red-500 text-xs mt-1">{errors.description}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.description}
+                  </span>
                 )}
               </div>
 
@@ -172,7 +193,9 @@ const AddCouponForm = () => {
                   />
                 </div>
                 {errors.discountValue && (
-                  <span className="text-red-500 text-xs mt-1">{errors.discountValue}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.discountValue}
+                  </span>
                 )}
               </div>
 
@@ -195,7 +218,9 @@ const AddCouponForm = () => {
                   />
                 </div>
                 {errors.minPurchaseAmount && (
-                  <span className="text-red-500 text-xs mt-1">{errors.minPurchaseAmount}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.minPurchaseAmount}
+                  </span>
                 )}
               </div>
 
@@ -218,7 +243,9 @@ const AddCouponForm = () => {
                   />
                 </div>
                 {errors.maxDiscountAmount && (
-                  <span className="text-red-500 text-xs mt-1">{errors.maxDiscountAmount}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.maxDiscountAmount}
+                  </span>
                 )}
               </div>
 
@@ -240,7 +267,9 @@ const AddCouponForm = () => {
                   />
                 </div>
                 {errors.expirationDate && (
-                  <span className="text-red-500 text-xs mt-1">{errors.expirationDate}</span>
+                  <span className="text-red-500 text-xs mt-1">
+                    {errors.expirationDate}
+                  </span>
                 )}
               </div>
 

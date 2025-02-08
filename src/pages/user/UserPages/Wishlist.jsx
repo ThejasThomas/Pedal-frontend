@@ -96,7 +96,7 @@ const WishlistPage = () => {
       })
 
       if (response.data.success) {
-        toast.success("Product added to cart")
+        toast.success("Product moved to cart")
       } else {
         toast.error(response.data.message || "Failed to add product to cart")
       }

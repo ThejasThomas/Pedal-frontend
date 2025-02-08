@@ -116,11 +116,10 @@ const CheckoutPage = () => {
       const response = await axiosInstance.post("/user/walletpayment", {
         userId: user._id,
         amount: totalAmount,
-        orderId: null // Will be updated in the backend after order creation
+        orderId: null 
       });
 
       if (response.data.success) {
-        // Place order with wallet payment
         const orderSuccess = await handlePlaceOrder("Paid", {
           method: "Wallet",
           transactionId: response.data.transactionId,
@@ -128,7 +127,6 @@ const CheckoutPage = () => {
         });
 
         if (orderSuccess) {
-          // Update wallet balance after successful payment
           await fetchWalletBalance();
           toast.success("Payment successful!");
         }
@@ -323,11 +321,6 @@ const CheckoutPage = () => {
           );
           return;
         }
-
-        // if (coupon.currentUsageLimit >= coupon.maxUsageLimit) {
-        //   toast.error("Coupon usage limit exceeded")
-        //   return
-        // }
 
         if (
           coupon.expirationDate &&
