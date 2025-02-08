@@ -31,7 +31,7 @@ const axiosMultipartInstance = axios.create({
 });
 
 const attachRequestInterceptor = (axiosCustomInstance) => {
-  console.log("Response interceptor worked..")
+  // console.log("Response interceptor worked..")
   axiosCustomInstance.interceptors.request.use(
     (config) => {
       config.headers = config.headers || {};

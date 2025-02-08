@@ -42,7 +42,7 @@ export const AdminDashboard = () => {
   if (loading) {
     return <div>Loading dashboard...</div>;
   }
-  console.log("tooo", dashboardData.salesChart);
+  // console.log("tooo", dashboardData.salesChart);
 
   return (
     <div className="container mx-auto p-4">

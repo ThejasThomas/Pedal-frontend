@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ChevronRight,
   ChevronUp,
+  IndianRupee,
 } from "lucide-react";
 import { axiosInstance } from "../../../api/axiosInstance";
 import Pagination from "../../../utils/pagination";
@@ -40,9 +41,9 @@ const AdminOrders = () => {
   };
 
   const handleReturnRequest = async (orderId, productId, status) => {
-    console.log('idds',orderId)
-    console.log('prod id',productId);
-    console.log('stta',status);
+    // console.log('idds',orderId)
+    // console.log('prod id',productId);
+    // console.log('stta',status);
     
     
     
@@ -353,9 +354,9 @@ const AdminOrders = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <DollarSign className="h-5 w-5 text-gray-400 mr-2" />
+                        <IndianRupee className="h-5 w-5 text-gray-400 mr-2" />
                         <div className="text-sm font-medium text-gray-900">
-                          ${order.totalAmount?.toFixed(2) || "0.00"}
+                          {order.totalAmount?.toFixed(2) || "0.00"}
                         </div>
                       </div>
                     </td>

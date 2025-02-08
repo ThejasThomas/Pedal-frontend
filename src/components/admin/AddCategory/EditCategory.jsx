@@ -78,18 +78,18 @@ export default function EditCategory({ category, onCancel, onCategoryUpdated }) 
             image: imagePreview
         };
 
-        console.log('Sending update data:', updateData);
+        // console.log('Sending update data:', updateData);
 
         const response = await axiosInstance.patch(
             `/admin/editCategory/${category._id}`,
             updateData
         );
 
-        console.log('Response from server:', response.data);
+        // console.log('Response from server:', response.data);
 
         if (response.data.success) {
             onCategoryUpdated(response.data.category);
-            onCancel(); // Close the edit form
+            onCancel(); 
         } else {
             setError(response.data.message || 'Update failed');
         }

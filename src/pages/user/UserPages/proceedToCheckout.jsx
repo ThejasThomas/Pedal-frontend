@@ -83,7 +83,7 @@ const CheckoutPage = () => {
   const fetchWalletBalance = async () => {
     try {
       setIsLoadingWallet(true);
-      console.log('ididid',user._id);
+      // console.log('ididid',user._id);
       
       const response = await axiosInstance.get(`/user/walletbalance/${user._id}`);
       console.log(response);

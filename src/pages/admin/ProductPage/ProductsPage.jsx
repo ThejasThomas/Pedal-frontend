@@ -316,7 +316,7 @@ export function ProductPage() {
   const handleAddProduct = (newProduct) => {
     setAllProducts((prev) => [...prev, newProduct]);
     setAddTab(false);
-    console.log("gkfmnb gfb");
+    // console.log("gkfmnb gfb");
 
     toast.success("Product added successfully");
   };

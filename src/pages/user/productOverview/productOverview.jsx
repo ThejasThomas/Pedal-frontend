@@ -92,7 +92,7 @@ export default function EnhancedProductDetail() {
         user_id: user._id,
       });
       const response = await addToWishListApi(id, user._id);
-      console.log("Response:", response);
+      // console.log("Response:", response);
 
       if (response.data.success) {
         toast("Product added to wishlist successfully!");

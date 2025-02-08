@@ -151,7 +151,6 @@ export default function AddProductPage({ onSave, onCancel }) {
       console.log(response)
       if (response.data) {
         toast.success("Product added successfully!");
-        // navigate("/admin/products", { replace: true });
         onCancel()
         setProductData({
           name: "",

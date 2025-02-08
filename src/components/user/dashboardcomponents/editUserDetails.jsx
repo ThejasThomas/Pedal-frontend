@@ -119,7 +119,7 @@ const EditUserDetails = () => {
         }, 100);    
 
       }else{
-        console.log('update failed',response.data);
+        // console.log('update failed',response.data);
         
       }
     } catch (err) {
