@@ -196,13 +196,13 @@ export default function EnhancedProductDetail() {
                     Shop
                   </a>
                   <a
-                    href="/about"
+                    href="/user/aboutus"
                     className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     About
                   </a>
                   <a
-                    href="user/contactpage"
+                    href="/user/contactpage"
                     className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Contact

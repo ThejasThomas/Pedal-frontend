@@ -18,7 +18,7 @@ const SalesReport = () => {
   const [reportData, setReportData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [filterType, setFilterType] = useState("daily")
+  const [filterType, setFilterType] = useState("/Daily")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [page, setPage] = useState(0)
@@ -183,7 +183,7 @@ const SalesReport = () => {
         )}
 
         <div className="flex gap-2">
-          {["daily", "weekly", "monthly", "yearly", "custom"].map((type) => (
+          {["/Daily", "/Weekly", "/Monthly", "/Yearly", "custom"].map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type)}

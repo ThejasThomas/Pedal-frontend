@@ -8,6 +8,7 @@ import adminLoginImg from '../../../assets/images/adminLogin.jpg'
 import { useDispatch } from 'react-redux';
 import { addAdmin } from '../../../../redux/slice/adminSlice';
 import {toast} from 'sonner';
+import { axiosInstance } from '../../../api/axiosInstance';
 
 
 
@@ -28,7 +29,7 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/admin/login', formData);
+      const response = await axiosInstance.post('/admin/login', formData);
       
       if (response.data) {
 

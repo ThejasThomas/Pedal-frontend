@@ -52,7 +52,7 @@ const OTPVerification = () => {
       setError("");
       setMessage("");
 
-      const response = await axios.post("http://localhost:3000/user/verifyOtp", {
+      const response = await axiosInstance.post("/user/verifyOtp", {
         email,
         otp: otpCode,
       });

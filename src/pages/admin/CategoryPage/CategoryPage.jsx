@@ -402,8 +402,8 @@ export default function CategoryPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:3000/admin/fetchCategoryUser"
+      const response = await axiosInstance.get(
+        "/admin/fetchCategoryUser"
       );
       if (
         response.data?.categories &&

@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/solid";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { axiosInstance } from "../../../api/axiosInstance";
 
 export default function EditProductPage() {
   const { productId } = useParams();
@@ -33,7 +34,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/admin/category");
+        const response = await axiosInstance.get("/admin/category");
         if (response.data.success) {
           setCategories(response.data.categories);
         }
@@ -52,7 +53,7 @@ export default function EditProductPage() {
     }
 
     try {
-      const response = await axios.get('http://localhost:3000/admin/product');
+      const response = await axiosInstance.get('/admin/product');
       const allProducts = response.data.products;
 
       const matchedProduct = allProducts.find(product => product._id === productId);
@@ -158,8 +159,8 @@ export default function EditProductPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.put(
-        `http://localhost:3000/admin/editproduct/${productId}`,
+      const response = await axiosInstance.put(
+        `/admin/editproduct/${productId}`,
         {
           name: productData.name,
           description: productData.description,

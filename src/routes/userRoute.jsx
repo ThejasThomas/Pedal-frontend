@@ -22,6 +22,7 @@ import ForgotPassword from "../components/Auth/ForgotPassword";
 import CouponPage from "../components/user/dashboardcomponents/CouponPage";
 import WalletPage from "../pages/user/userWallet";
 import WishlistPage from "../pages/user/UserPages/Wishlist";
+import AboutUs from "../pages/user/aboutUs/aboutUs";
 
 function UserRoute() {
   return (
@@ -52,11 +53,13 @@ function UserRoute() {
          
 
         </Route>
-      </Route>
+      </Route> 
 
       <Route path="/orderplaced" element={<Orderplaced />} />
       <Route path="/orderdetailedpage/:orderId" element={<OrderDetailPage/>}/>
       <Route path="/contactpage" element={<ContactPage/>}/>
+      <Route path="/aboutus" element={<AboutUs/>}/>
+
       <Route path='/*' element ={<ErrorPage/>}/>
 
 

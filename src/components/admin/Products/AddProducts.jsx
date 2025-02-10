@@ -10,6 +10,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/images/Logo.png";
 import { toast } from "sonner";
+import { axiosInstance } from "../../../api/axiosInstance";
 
 export default function AddProductPage({ onSave, onCancel }) {
   const navigate = useNavigate();
@@ -43,8 +44,8 @@ export default function AddProductPage({ onSave, onCancel }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/admin/category"
+        const response = await axiosInstance.get(
+          "/admin/category"
         );
         if (response.data.success) {
           setCategories(response.data.categories);
@@ -139,8 +140,8 @@ export default function AddProductPage({ onSave, onCancel }) {
 
     try {
       setIsSubmitting(true);
-      const response = await axios.post(
-        "http://localhost:3000/admin/addproduct",
+      const response = await axiosInstance.post(
+        "/admin/addproduct",
         {
           ...productData,
           basePrice: Number(productData.basePrice),
