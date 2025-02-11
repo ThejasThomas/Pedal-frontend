@@ -3,7 +3,7 @@ import { FaShoppingCart, FaSearch, FaChevronDown, FaUser } from 'react-icons/fa'
 import { Loader2 } from 'lucide-react';
 import { axiosInstance } from '../../../api/axiosInstance';
 import storeImage from '../../../assets/images/storeimage.jpg'
-import logo from '../../../assets/images/logo.png'
+import logo from '../../../assets/images/Logo.png'
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../../../../redux/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
