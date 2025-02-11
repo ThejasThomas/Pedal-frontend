@@ -3,7 +3,7 @@ import { FaShoppingCart, FaSearch, FaChevronDown, FaUser } from 'react-icons/fa'
 import { Loader2 } from 'lucide-react';
 import { axiosInstance } from '../../../api/axiosInstance';
 import storeImage from '../../../assets/images/storeimage.jpg'
-// import logo from '../../../assets/images/Logo.png'
+import logo from '../../../assets/images/Logo.png'
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../../../../redux/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,6 @@ const Header = ({ onSortChange,onCategoryChange,onSearch }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchInput, setSearchInput] = useState('');
 
-console.log('hey');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -95,7 +94,7 @@ console.log('hey');
       <nav className="bg-gray-900 text-white">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center space-x-2">
-            <img src= '/assets/Images/Logo.png' alt="Logo" className="w-10 h-10" />
+            <img src={logo || "/placeholder.svg"} alt="Logo" className="w-10 h-10" />
             <span className="text-xl font-bold">PedalQuest</span>
           </a>
           
