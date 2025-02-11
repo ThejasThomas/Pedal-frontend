@@ -17,6 +17,7 @@ const Header = ({ onSortChange,onCategoryChange,onSearch }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchInput, setSearchInput] = useState('');
 
+console.log('hey');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
