@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import aboutUsBanner from "../../../assets/images/img9.jpg";
-import sideImg1 from "../../../assets/images/adminSignUpImg.jpg";
+import sideImg1 from "../../../assets/images/image cycle cover.jpg";
 import sideImg2 from "../../../assets/images/img10.jpg";
 import sideImg3 from "../../../assets/images/img8.jpg";
 import sideImg4 from "../../../assets/images/image3.jpg";
