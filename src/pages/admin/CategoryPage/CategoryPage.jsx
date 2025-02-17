@@ -20,6 +20,7 @@ import AddCategory from "../../../components/admin/AddCategory/AddCategory";
 import EditCategory from "../../../components/admin/AddCategory/EditCategory";
 import { toast } from "sonner";
 import axios from "axios";
+import Pagination from "../../../utils/pagination";
 
 const Modal = ({ children, onClose }) => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -383,12 +384,14 @@ export default function CategoryPage() {
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isAddingOffer, setIsAddingOffer] = useState(false);
   const [isViewingOffers, setIsViewingOffers] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    fetchCategories(currentPage);
+  }, [currentPage]);
 
   useEffect(() => {
     const filteredCategories = filterCategories(
@@ -402,26 +405,30 @@ export default function CategoryPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axiosInstance.get(
-        "/admin/fetchCategoryUser"
-      );
-      if (
-        response.data?.categories &&
-        Array.isArray(response.data.categories)
-      ) {
-        const visibleCategories = response.data.categories.filter(
-          (cat) => !cat.isHidden
-        );
+      const response = await axiosInstance.get("/admin/fetchCategoryUser", {
+        params: { 
+          page: currentPage,
+          limit: 4
+        },
+        withCredentials: true,
+      });
+  
+      if (response.data?.categories && Array.isArray(response.data.categories)) {
         setAllCategories(response.data.categories);
         setCategories(response.data.categories);
-        console.log(response);
-      } else {
-        toast.error("Invalid data format received");
+        setTotalPages(response.data.totalPages); 
+        
+        console.log("Total Pages:", response.data.totalPages); 
+        console.log("Current Page:", currentPage); 
       }
     } catch (error) {
       toast.error("Failed to fetch categories");
       console.error("Error fetching categories:", error);
     }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const filterCategories = (categoryList, searchTerm, filter, date) => {
@@ -729,6 +736,7 @@ export default function CategoryPage() {
               </table>
             </div>
           )}
+
           {isAddingOffer && selectedCategory && (
             <AddOfferModal
               category={selectedCategory}
@@ -743,6 +751,13 @@ export default function CategoryPage() {
               }}
             />
           )}
+          <>
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              handlePageChange={handlePageChange}
+            />
+          </>
           {isViewingOffers && selectedCategory && (
             <ViewOffersModal
               category={selectedCategory}
