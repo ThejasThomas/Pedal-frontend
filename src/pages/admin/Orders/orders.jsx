@@ -112,7 +112,7 @@ const AdminOrders = () => {
             <div className="flex items-start space-x-4">
               {item.productImage && (
                 <img
-                  src={item.productImage}
+                  src={item.productImage[0]}
                   alt={item.productName}
                   className="w-24 h-24 object-cover rounded"
                 />

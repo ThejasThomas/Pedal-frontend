@@ -87,11 +87,9 @@ export default function Login() {
 
       if (error.response) {
 
-        // Use the error message from the server if available
         const errorMessage = error.response.data.message || 'Invalid email or password';
         toast.error(errorMessage);
     } else {
-        // Handle network or other errors
         toast.error('Login failed. Please try again.');
     }
 }
