@@ -83,7 +83,7 @@ export default function Login() {
         navigate('/user/store');
       }
     } catch (error) {
-      console.log('msgg',error.message);
+      console.log('Error at login',error);
 
       if (error.response) {
 
