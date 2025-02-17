@@ -5,9 +5,12 @@ import HomePage from './pages/user/home/home';
 import ErrorPage from './pages/user/UserPages/errorpage'
 import './App.css';
 import {Toaster,} from 'sonner';
+import FaviconUpdater from './components/FaviconUpdater';
 
 function App() {
   return (
+    <>
+    <FaviconUpdater />
     <Router> 
       <Routes>
       <Route path="/" element={<HomePage />} />
@@ -17,6 +20,7 @@ function App() {
       </Routes>
       <Toaster position='top-right' />
     </Router>
+    </>
   );
 }
 
