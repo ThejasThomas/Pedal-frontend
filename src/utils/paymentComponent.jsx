@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../api/axiosInstance";
 import { useSelector } from "react-redux";
 
-function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
+function PaymentComponent({ total, handlePlaceOrder, cartItems,isAddressSelected = false }) {
   const navigate = useNavigate();
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [paymentInProgress, setPaymentInProgress] = useState(false);
@@ -125,6 +125,10 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
       toast.error("Payment system not loaded. Please refresh.");
       return;
     }
+    if (!isAddressSelected) {
+      toast.error("Please select a delivery address before proceeding with payment");
+      return;
+    }
 
     try {
       const isAvailable = await checkProductAvailability();
@@ -148,6 +152,13 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
           </p>
         </div>
       )}
+      {!isAddressSelected && (
+        <div className="bg-yellow-50 p-4 rounded-md">
+          <p className="text-yellow-700 text-sm">
+            Please select a delivery address to proceed with payment.
+          </p>
+        </div>
+      )}
       <button
         onClick={handleSubmit}
         disabled={!isScriptLoaded || paymentInProgress}
@@ -161,6 +172,8 @@ function PaymentComponent({ total, handlePlaceOrder, cartItems }) {
           ? "Loading Payment..."
           : paymentInProgress
           ? "Processing Payment..."
+          : !isAddressSelected
+          ? "Select Delivery Address"
           : paymentFailed
           ? "Retry Payment"
           : "Pay with RazorPay"}

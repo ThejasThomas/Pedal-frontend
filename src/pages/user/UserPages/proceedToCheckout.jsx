@@ -76,7 +76,11 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([fetchAddresses(), fetchCartItems(),fetchWalletBalance()]);
+      await Promise.all([
+        fetchAddresses(),
+        fetchCartItems(),
+        fetchWalletBalance(),
+      ]);
     };
     fetchData();
   }, [user._id]);
@@ -84,10 +88,12 @@ const CheckoutPage = () => {
     try {
       setIsLoadingWallet(true);
       // console.log('ididid',user._id);
-      
-      const response = await axiosInstance.get(`/user/walletbalance/${user._id}`);
+
+      const response = await axiosInstance.get(
+        `/user/walletbalance/${user._id}`
+      );
       console.log(response);
-      
+
       if (response.data.success) {
         setWalletBalance(response.data.wallet.balance);
       } else {
@@ -107,7 +113,7 @@ const CheckoutPage = () => {
   const handleWalletPayment = async () => {
     try {
       const totalAmount = calculateFinalTotal();
-      
+
       if (walletBalance < totalAmount) {
         toast.error("Insufficient wallet balance");
         return;
@@ -116,14 +122,14 @@ const CheckoutPage = () => {
       const response = await axiosInstance.post("/user/walletpayment", {
         userId: user._id,
         amount: totalAmount,
-        orderId: null 
+        orderId: null,
       });
 
       if (response.data.success) {
         const orderSuccess = await handlePlaceOrder("Paid", {
           method: "Wallet",
           transactionId: response.data.transactionId,
-          amount: totalAmount
+          amount: totalAmount,
         });
 
         if (orderSuccess) {
@@ -743,19 +749,35 @@ const CheckoutPage = () => {
                         Pay with Wallet
                       </Button>
                     ) : paymentMethod === "Razorpay" ? (
-                      <PaymentComponent
-                        total={calculateFinalTotal()}
-                        handlePlaceOrder={handlePlaceOrder}
-                        cartItems={cartItems}
-                        isAddressSelected={!!selectedAddress}
-                      />
-                    ) : paymentMethod === "Razorpay" ? (
-                      <PaymentComponent
-                        total={calculateFinalTotal()}
-                        handlePlaceOrder={handlePlaceOrder}
-                        cartItems={cartItems}
-                        isAddressSelected={!!selectedAddress}
-                      />
+                      <div>
+                        {/* {!selectedAddress && (
+                          <Alert
+                            variant="warning"
+                            className="bg-yellow-50 border-yellow-200 mb-4"
+                          >
+                            <AlertCircle className="h-4 w-4 text-yellow-600" />
+                            <AlertDescription className="text-yellow-700">
+                              Please select a delivery address before proceeding
+                              with payment
+                            </AlertDescription>
+                          </Alert>
+                        )} */}
+                        <div
+                          className={
+                            !selectedAddress
+                              ? "opacity-50 pointer-events-none"
+                              : ""
+                          }
+                        >
+                          <PaymentComponent
+                            total={calculateFinalTotal()}
+                            handlePlaceOrder={handlePlaceOrder}
+                            cartItems={cartItems}
+                            isAddressSelected={!!selectedAddress}
+                            disabled={!selectedAddress}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <Button
                         onClick={handlePlaceOrder}
