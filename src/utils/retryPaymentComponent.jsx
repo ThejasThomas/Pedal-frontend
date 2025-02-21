@@ -1,4 +1,3 @@
-"use client"
 
 import { useState, useEffect } from "react"
 import { axiosInstance } from "../api/axiosInstance"
@@ -49,33 +48,31 @@ const ContinuePayment = ({ orderId, productId, total, onSuccess }) => {
               orderId,
               productId,
               razorpayPaymentId: response.razorpay_payment_id,
-            })
-
-            if (confirmResponse.data.success) {
-              // Update order status
-              const updateOrderResponse = await axiosInstance.post("/user/updateOrderStatus", {
-                orderId,
-                status: "PAID",
-              })
-
-              if (updateOrderResponse.data.success) {
-                toast.success("Payment successful! Order status updated.")
-                onSuccess && onSuccess(response)
-                navigate("/order-success", { state: { orderId } })
-              } else {
-                toast.warning("Payment successful, but order status update failed. Please contact support.")
-                navigate("/user/orders")
-              }
-            } else {
-              toast.error("Payment confirmation failed")
+            });
+        
+            if (!confirmResponse.data.success) {
+              toast.error("Payment confirmation failed");
+              return;
             }
+        
+            // ✅ Update UI instantly by calling `onSuccess`
+            onSuccess(orderId);
+        
+            // ✅ Fetch updated orders from the backend
+            setTimeout(async () => {
+              await fetchOrders(currentPage);
+            }, 1000);
+        
+            toast.success("Payment successful! Order status updated.");
+            navigate("/user/orders");
           } catch (error) {
-            toast.error("Error processing payment: " + error.message)
-            console.error("Payment confirmation error:", error)
+            toast.error("Error processing payment: " + error.message);
+            console.error("Payment confirmation error:", error);
           } finally {
-            setIsLoading(false)
+            setIsLoading(false);
           }
         },
+        
         prefill: {
           name: "Customer",
           email: "customer@example.com",

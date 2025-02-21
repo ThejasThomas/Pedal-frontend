@@ -94,7 +94,7 @@ const OrderHistory = () => {
     return "Pending";
   };
 
-  const handlePaymentSuccess = useCallback((orderId) => {
+  const handlePaymentSuccess = useCallback(async (orderId) => {
     setOrders((prevOrders) =>
       prevOrders.map((order) => {
         if (order._id === orderId) {
@@ -109,7 +109,11 @@ const OrderHistory = () => {
         return order;
       })
     );
-  }, []);
+
+ setTimeout(async () => {
+  await  fetchOrders(currentPage);
+  }, 1000); 
+}, [fetchOrders, currentPage]);
 
   if (loading) {
     return (
